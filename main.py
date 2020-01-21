@@ -31,9 +31,9 @@ agent_list[3] = RandomAI(playersNameList[3], {'print_info': True})
 # My Agent
 """
 agent_list[0] = Agent(gamma, epsilon, learning_rate, , {'print_info': True})
-agent_list[1] = Agent(playersNameList[1], {'print_info': True})
-agent_list[2] = Agent(playersNameList[2], {'print_info': True})
-agent_list[3] = Agent(playersNameList[3], {'print_info': True})
+agent_list[1] = RandomAI(playersNameList[1], {'print_info': True})
+agent_list[2] = RandomAI(playersNameList[2], {'print_info': True})
+agent_list[3] = RandomAI(playersNameList[3], {'print_info': True})
 """
 
 env = gym.make('Hearts_Card_Game-v0')
