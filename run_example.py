@@ -3,12 +3,16 @@ import gym
 from Hearts import *
 from Agent.human import Human
 from Agent.randomAI import RandomAI
+from Agent.Agent import Agent
 
-NUM_EPISODES = 10
-MAX_SCORE = 100
+num_episodes = 10
+max_score = 100
 
-playersNameList = ['Kazuma', 'Aqua', 'Megumin', 'Darkness']
+playersNameList = ['Aqua', 'Boris', 'Calum', 'Diego']
 agent_list = [0, 0, 0, 0]
+gamma = 0.999
+epsilon = 1
+learning_rate = 0.02
 
 # Human vs Random
 """
@@ -17,18 +21,25 @@ agent_list[1] = RandomAI(playersNameList[1], {'print_info': False})
 agent_list[2] = RandomAI(playersNameList[2], {'print_info': False})
 agent_list[3] = RandomAI(playersNameList[3], {'print_info': False})
 """
-
 # Random play
+
 agent_list[0] = RandomAI(playersNameList[0], {'print_info': True})
 agent_list[1] = RandomAI(playersNameList[1], {'print_info': True})
 agent_list[2] = RandomAI(playersNameList[2], {'print_info': True})
 agent_list[3] = RandomAI(playersNameList[3], {'print_info': True})
 
+# My Agent
+"""
+agent_list[0] = Agent(gamma, epsilon, learning_rate, , {'print_info': True})
+agent_list[1] = Agent(playersNameList[1], {'print_info': True})
+agent_list[2] = Agent(playersNameList[2], {'print_info': True})
+agent_list[3] = Agent(playersNameList[3], {'print_info': True})
+"""
 
 env = gym.make('Hearts_Card_Game-v0')
-env.__init__(playersNameList, MAX_SCORE)
+env.__init__(playersNameList, max_score)
 
-for i_episode in range(NUM_EPISODES):
+for _ in range(num_episodes):
     
     observation = env.reset()
     
