@@ -23,10 +23,10 @@ agent_list[3] = RandomAI(playersNameList[3], {'print_info': False})
 """
 # Random play
 
-agent_list[0] = RandomAI(playersNameList[0], {'print_info': True})
-agent_list[1] = RandomAI(playersNameList[1], {'print_info': True})
-agent_list[2] = RandomAI(playersNameList[2], {'print_info': True})
-agent_list[3] = RandomAI(playersNameList[3], {'print_info': True})
+agent_list[0] = RandomAI(playersNameList[0], {'print_info': False})
+agent_list[1] = RandomAI(playersNameList[1], {'print_info': False})
+agent_list[2] = RandomAI(playersNameList[2], {'print_info': False})
+agent_list[3] = RandomAI(playersNameList[3], {'print_info': False})
 
 # My Agent
 """
@@ -41,11 +41,13 @@ env.__init__(playersNameList, max_score)
 
 for _ in range(num_episodes):
     
-    observation = env.reset()
+    observation = env.reset()   # return initial observation
     
     while True:
-        env.render()
 
+        env.render()
+        print("observation: ", observation, "\n\n")
+        
         now_event = observation['event_name']
         IsBroadcast = observation['broadcast']
         action = None
@@ -60,7 +62,7 @@ for _ in range(num_episodes):
 
         observation, reward, done, info = env.step(action)
 
-        if reward != None:
+        if reward:
             print('\nreward: {0}\n'.format(reward))
 
         if done:

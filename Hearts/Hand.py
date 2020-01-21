@@ -35,8 +35,8 @@ class Hand:
             self.spades.append(card)
         elif card.suit == Suit(hearts):
             self.hearts.append(card)
-        else:
-            print ('Invalid card')
+        #else:
+         #   print ('Invalid card')
 
         if self.size() == 13:
             for suit in self.hand:
@@ -66,8 +66,8 @@ class Hand:
         try:
             suitIden = suits.index(suit)
         except Exception as e:
-            print ('Invalid suit')
-            print(e)
+            #print ('Invalid suit')
+            #print(e)
             return None
 
         cardRank = card[0:len(card)-1] # get rank from string
@@ -92,8 +92,8 @@ class Hand:
             try:
                 cardRank = int(cardRank)
             except Exception as e:
-                print ("Invalid card rank.")
-                print(e)
+                #print ("Invalid card rank.")
+                #print(e)
                 return None
 
         return cardRank, suitIden
@@ -128,7 +128,6 @@ class Hand:
             if c == card:
                 if suitId == clubs and card.rank.rank == 2:
                     self.contains2ofclubs = False
-                # print "Removing:", c.__str__()
                 self.hand[card.suit.iden].remove(c)
                 self.updateHand()
 
