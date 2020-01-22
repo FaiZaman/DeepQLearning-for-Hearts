@@ -6,9 +6,10 @@ from Network import DeepQNetwork
 class Agent(object):
 
     # batch size = number of experiences sampled
-    def __init__(self, gamma, epsilon, learning_rate, input_size, batch_size, n_actions,    # gamma = discount factor
+    def __init__(self, name, gamma, epsilon, learning_rate, input_size, batch_size, n_actions,    # gamma = discount factor
                  max_mem_size=1000000, epsilon_min=0.01, epsilon_decrement = 0.996):        # epsilon for epsilon greedy
 
+        self.name = name
         self.gamma = gamma
         self.epsilon = epsilon
         self.batch_size = batch_size
@@ -53,8 +54,8 @@ class Agent(object):
         random_number = rand.random()
 
         # epsilon greedy policy
-        if rand < self.epsilon:
-            action = np.random(self.action_space)
+        if random_number < self.epsilon:
+            action = np.random.choice(self.action_space)
         else:
             actions = self.Q_eval.forward(observation)      # get action list from neural network
             action = T.argmax(actions).item()               # choose action with greatest value
