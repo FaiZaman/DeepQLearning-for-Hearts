@@ -51,16 +51,36 @@ class Agent(object):
     
     def choose_action(self, observation):
 
-        random_number = rand.random()
+        # get event and hand name
+        event = observation['event_name']
+        hand = observation['data']['hand']
 
-        # epsilon greedy policy
-        if random_number < self.epsilon:
-            action = np.random.choice(self.action_space)
-        else:
-            actions = self.Q_eval.forward(observation)      # get action list from neural network
-            action = T.argmax(actions).item()               # choose action with greatest value
+        # choose 3 random cards to pass if passing event
+        if event == 'PassCards':
+            passCards = rand.sample(hand, 3)
+            return {
+                "event_name": "PassCards_Action",
+                "data": {
+                    'playerName': self.name,
+                    'action': { 'passCards': passCards }
+                }
+            }
         
-        return action
+        elif event == 'PlayTrick':
+
+            if '2c' in hand:
+                card_chosen = '2c'
+            else:
+
+                # epsilon greedy policy
+                if rand.random() < self.epsilon:
+                    action = np.random.choice(self.action_space)
+                else:
+                    actions = self.Q_eval.forward(observation)      # get action list from neural network
+                    action = T.argmax(actions).item()               # choose action with greatest value
+                
+                print("ACTION: ", action)
+                return action
 
     
     def learn(self):

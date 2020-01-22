@@ -8,7 +8,7 @@ from Agent.Agent import Agent
 num_episodes = 10
 max_score = 100
 
-playersNameList = ['Aqua', 'Boris', 'Calum', 'Diego']
+playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
 agent_list = [0, 0, 0, 0]
 gamma = 0.999
 epsilon = 1
@@ -41,7 +41,6 @@ agent_list[3] = RandomAI(playersNameList[3], {'print_info': False})
 
 env = gym.make('Hearts_Card_Game-v0')
 env.__init__(playersNameList, max_score)
-print(isinstance(agent_list[0], RandomAI))
 
 for _ in range(num_episodes):
     
@@ -74,7 +73,7 @@ for _ in range(num_episodes):
 
         if reward:
             print('\nreward: {0}\n'.format(reward))
-            score += reward
+            score += reward['Agent']
 
         if done:
             print('\nGame Over!!\n')
