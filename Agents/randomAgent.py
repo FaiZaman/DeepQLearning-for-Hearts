@@ -2,6 +2,8 @@ import random
 from datetime import datetime
 
 class RandomAgent:
+
+
     def __init__(self, name, params = None):
         random.seed(datetime.now())
         self.name = name
@@ -11,14 +13,18 @@ class RandomAgent:
         else:
             self.print_info = False
     
+
     def Do_Action(self, observation):
-        if observation['event_name'] == 'GameStart':
+
+        event = observation['event_name']
+
+        if event == 'GameStart':
             if self.print_info:
                 print(observation)
-        elif observation['event_name'] == 'NewRound':
+        elif event == 'NewRound':
             if self.print_info:
                 print(observation)
-        elif observation['event_name'] == 'PassCards':
+        elif event == 'PassCards':
             if self.print_info:
                 print(observation)
             
@@ -35,11 +41,11 @@ class RandomAgent:
                     }
                 }
         
-        elif observation['event_name'] == 'ShowPlayerHand':
+        elif event == 'ShowPlayerHand':
             if self.print_info:
                 print(observation)
 
-        elif observation['event_name'] == 'PlayTrick':
+        elif event == 'PlayTrick':
             if self.print_info:
                 print(observation)
 
@@ -58,15 +64,15 @@ class RandomAgent:
                         'action': {'card': choose_card}
                     }
                 }
-        elif observation['event_name'] == 'ShowTrickAction':
+        elif event == 'ShowTrickAction':
             if self.print_info:
                 print(observation)
-        elif observation['event_name'] == 'ShowTrickEnd':
+        elif event == 'ShowTrickEnd':
             if self.print_info:
                 print(observation)
-        elif observation['event_name'] == 'RoundEnd':
+        elif event == 'RoundEnd':
             if self.print_info:
                 print(observation)
-        elif observation['event_name'] == 'GameOver':
+        elif event == 'GameOver':
             if self.print_info:
-                print(observation)            
+                print(observation)       

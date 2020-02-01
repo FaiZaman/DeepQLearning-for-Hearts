@@ -58,6 +58,7 @@ class RLAgent(object):
         # choose 3 random cards to pass if passing event
         if event == 'PassCards':
             passCards = rand.sample(hand, 3)
+            
             return {
                 "event_name": "PassCards_Action",
                 "data": {
