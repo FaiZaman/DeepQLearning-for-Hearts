@@ -14,7 +14,7 @@ class RandomAgent:
             self.print_info = False
     
 
-    def Do_Action(self, observation):
+    def perform_action(self, observation):
 
         event = observation['event_name']
 
@@ -46,8 +46,9 @@ class RandomAgent:
                 print(observation)
 
         elif event == 'PlayTrick':
+            print("===========", observation, "==========")
             if self.print_info:
-                print(observation)
+                print("===========", observation, "==========")
 
             hand = observation['data']['hand']
             if '2c' in hand:

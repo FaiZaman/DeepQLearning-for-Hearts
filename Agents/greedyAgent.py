@@ -11,10 +11,10 @@ class GreedyAgent():
     def perform_action(self, observation):
 
         event = observation['event_name']
-        hand = observation['data']['hand']
 
         if event == 'PassCards':
             
+            hand = observation['data']['hand']
             pass_list = []
 
             # choose the cards with the greatest value to swap
@@ -33,8 +33,39 @@ class GreedyAgent():
 
         elif event == 'PlayTrick':
 
+            hand = observation['data']['hand']
+
             if '2c' in hand:
-                choose_card = '2c'
+                smallest_card = '2c'
             else:
                 # choose the legal card with the smallest value to play
-                
+
+                hearts_broken = observation['data']['trickSuit']
+                trick_suit = observation['data']['trickSuit']
+                smallest_card = 14
+
+                if trick_suit == "Unset":
+                    if hearts_broken:
+                        for card in hand:
+                            if card[0] == 'A' and 14 <= smallest_card:
+                                smallest_card = card
+                            elif card[0] == 'K' and 13 <= smallest_card:
+                                smallest_card = card
+                            elif card[0] == 'Q' and 12 <= smallest_card:
+                                smallest_card = card
+                            elif card[0] == 'J' and 11 <= smallest_card:
+                                smallest_card = card
+                            elif card[0] == 'T' and 10 <= smallest_card:
+                                smallest_card = card
+                            else:
+                                if int(card[0]) < smallest_card:
+                                    smallest_card = card
+
+            return {
+                "event_name": "PlayTrick_Action",
+                "data": {
+                    'playerName': self.name,
+                    'action': {'card': smallest_card}
+                }
+            }
+            

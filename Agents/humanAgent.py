@@ -8,7 +8,7 @@ class HumanAgent:
         self.name = name
     
     
-    def Do_Action(self, observation):
+    def perform_action(self, observation):
 
         event = observation['event_name']
 
