@@ -40,18 +40,16 @@ class GreedyAgent():
             else:
                 hearts_broken = observation['data']['trickSuit']
                 trick_suit = observation['data']['trickSuit']
-                smallest_card = 14
 
                 if trick_suit == "Unset":
                     if hearts_broken:
-                        smallest_card = find_smallest_card(hand)
+                        smallest_card = self.find_smallest_card(hand)
                     else:
-                        no_hearts_hand = self.remove_illegal_cards(hand)
-                        smallest_card = find_smallest_card(no_hearts_hand)
+                        no_hearts_hand = self.remove_hearts(hand)
+                        smallest_card = self.find_smallest_card(no_hearts_hand)
                 else:
-                    # first check if trick suit present in hand; if it is then limit cards to that suit
-                    # otherwise let any card be played (except for hearts if hearts not broken)
-
+                    legal_hand = self.remove_illegal_cards(hand, trick_suit, hearts_broken)
+                    smallest_card = self.find_smallest_card(legal_hand)
 
             return {
                 "event_name": "PlayTrick_Action",
@@ -62,8 +60,10 @@ class GreedyAgent():
             }
     
 
-    def find_smallest_card(self):
+    def find_smallest_card(self, hand):
 
+        smallest_card = 14
+        
         # choose the legal card with the smallest value to play
         for card in hand:
             if card[0] == 'A' and 14 <= smallest_card:
@@ -83,11 +83,32 @@ class GreedyAgent():
         return smallest_card
 
 
-    def remove_illegal_cards(self, hand):
+    def remove_hearts(self, hand):
 
-        legal_hand = hand.copy()
-        for card in legal_hand:
+        no_hearts_hand = hand.copy()
+        for card in no_hearts_hand:
             if card[1] == 'h':
-                del legal[card]
+                del no_hearts_hand[card]
 
-        return legal
+        return no_hearts_hand
+
+
+    def remove_illegal_cards(self, hand, trick_suit, hearts_broken):
+
+        legal_present = False
+
+        for card in hand:
+            if card[1] == trick_suit:
+                legal_present = True
+                break
+        
+        legal_hand = hand.copy()
+        if legal_present:
+            for card in hand:
+                if card[1] == trick_suit:
+                    legal_hand.append(card)
+        else:
+            if not(hearts_broken):
+                legal_hand = self.remove_hearts(legal_hand)
+        
+        return legal_hand
