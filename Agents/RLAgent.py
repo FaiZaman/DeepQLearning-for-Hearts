@@ -3,7 +3,7 @@ import random as rand
 import numpy as np
 from Network import DeepQNetwork
 
-class Agent(object):
+class RLAgent(object):
 
     # batch size = number of experiences sampled
     def __init__(self, name, gamma, epsilon, learning_rate, input_size, batch_size, n_actions,    # gamma = discount factor
@@ -79,8 +79,15 @@ class Agent(object):
                     actions = self.Q_eval.forward(observation)      # get action list from neural network
                     action = T.argmax(actions).item()               # choose action with greatest value
                 
-                print("ACTION: ", action)
-                return action
+                print(action, hand)
+                card_chosen = hand[action]
+                return {
+                    "event_name": "PlayTrick_Action",
+                    "data": {
+                        'playerName': self.name,
+                        'action': { 'card': card_chosen }
+                    }
+                }
 
     
     def learn(self):

@@ -1,7 +1,7 @@
 import random
 from datetime import datetime
 
-class RandomAI:
+class RandomAgent:
     def __init__(self, name, params = None):
         random.seed(datetime.now())
         self.name = name

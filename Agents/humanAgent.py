@@ -1,4 +1,6 @@
-class Human:
+
+
+class HumanAgent:
     def __init__(self, name, params):
         self.name = name
     

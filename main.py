@@ -1,9 +1,9 @@
 import gym
 
 from Hearts import *
-from Agent.human import Human
-from Agent.randomAI import RandomAI
-from Agent.Agent import Agent
+from Agents.humanAgent import HumanAgent
+from Agents.randomAgent import RandomAgent
+from Agents.RLAgent import RLAgent
 
 num_episodes = 10
 max_score = 100
@@ -19,24 +19,24 @@ n_actions = 13
 
 # Human vs Random
 """
-agent_list[0] = Human(playersNameList[0], {})
-agent_list[1] = RandomAI(playersNameList[1], {'print_info': False})
-agent_list[2] = RandomAI(playersNameList[2], {'print_info': False})
-agent_list[3] = RandomAI(playersNameList[3], {'print_info': False})
+agent_list[0] = HumanAgent(playersNameList[0], {})
+agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
+agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
+agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
 """
 # Random play
 """
-agent_list[0] = RandomAI(playersNameList[0], {'print_info': False})
-agent_list[1] = RandomAI(playersNameList[1], {'print_info': False})
-agent_list[2] = RandomAI(playersNameList[2], {'print_info': False})
-agent_list[3] = RandomAI(playersNameList[3], {'print_info': False})
+agent_list[0] = RandomAgent(playersNameList[0], {'print_info': False})
+agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
+agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
+agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
 """
 # My Agent
 
-agent_list[0] = Agent(playersNameList[0], gamma, epsilon, learning_rate, input_size, batch_size, n_actions)
-agent_list[1] = RandomAI(playersNameList[1], {'print_info': False})
-agent_list[2] = RandomAI(playersNameList[2], {'print_info': False})
-agent_list[3] = RandomAI(playersNameList[3], {'print_info': False})
+agent_list[0] = RLAgent(playersNameList[0], gamma, epsilon, learning_rate, input_size, batch_size, n_actions)
+agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
+agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
+agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
 
 
 env = gym.make('Hearts_Card_Game-v0')
@@ -57,16 +57,16 @@ for _ in range(num_episodes):
         # let other players know of state if state is public, otherwise if action then only player performing knows
         if is_broadcast:
             for agent in agent_list:
-                if isinstance(agent, RandomAI):
+                if isinstance(agent, RandomAgent):
                     agent.Do_Action(observation)
 
         else:
             playName = observation['data']['playerName']
             for agent in agent_list:
                 if agent.name == playName:
-                    if isinstance(agent, RandomAI):
+                    if isinstance(agent, RandomAgent):
                         action = agent.Do_Action(observation)
-                    elif isinstance(agent, Agent):
+                    elif isinstance(agent, RLAgent):
                         action = agent.choose_action(observation)
 
         observation, reward, done, info = env.step(action)
