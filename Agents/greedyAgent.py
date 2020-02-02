@@ -40,17 +40,24 @@ class GreedyAgent():
             else:
                 hearts_broken = observation['data']['trickSuit']
                 trick_suit = observation['data']['trickSuit']
+                trick_number = observation['data']['trickNum']
 
                 if trick_suit == "Unset":
-                    if hearts_broken:
+                    if hearts_broken and trick_number > 1:
+                        # agent plays first card of any suit since hearts is broken
                         smallest_card = self.find_smallest_card(hand)
                     else:
+                        # agent plays first card of any suit except for hearts
                         no_hearts_hand = self.remove_hearts(hand)
                         smallest_card = self.find_smallest_card(no_hearts_hand)
                 else:
+                    # agent plays second/third/fourth card
+                    # if at least one card of tricksuit in hand, limit to cards of tricksuit
                     legal_hand = self.remove_illegal_cards(hand, trick_suit, hearts_broken)
                     smallest_card = self.find_smallest_card(legal_hand)
 
+            print(smallest_card)
+            
             return {
                 "event_name": "PlayTrick_Action",
                 "data": {
@@ -62,24 +69,48 @@ class GreedyAgent():
 
     def find_smallest_card(self, hand):
 
-        smallest_card = 14
-        
+        smallest_card_value = hand[0][0]
+        smallest_card_suit = hand[0][1]
+
         # choose the legal card with the smallest value to play
         for card in hand:
-            if card[0] == 'A' and 14 <= smallest_card:
-                smallest_card = card
-            elif card[0] == 'K' and 13 <= smallest_card:
-                smallest_card = card
-            elif card[0] == 'Q' and 12 <= smallest_card:
-                smallest_card = card
-            elif card[0] == 'J' and 11 <= smallest_card:
-                smallest_card = card
-            elif card[0] == 'T' and 10 <= smallest_card:
-                smallest_card = card
+            if card[0] == 'A':
+                if 14 <= int(smallest_card_value):
+                    smallest_card_value = card[0]
+                    smallest_card_suit = card[1]
+            elif card[0] == 'K':
+                if 13 <= int(smallest_card_value):
+                    smallest_card_value = card[0]
+                    smallest_card_suit = card[1]
+            elif card[0] == 'Q':
+                if 12 <= int(smallest_card_value):
+                    smallest_card_value = card[0]
+                    smallest_card_suit = card[1]
+            elif card[0] == 'J':
+                if 11 <= int(smallest_card_value):
+                    smallest_card_value = card[0]
+                    smallest_card_suit = card[1]
+            elif card[0] == 'T':
+                if 10 <= int(smallest_card_value):
+                    smallest_card_value = card[0]
+                    smallest_card_suit = card[1]
             else:
-                if int(card[0]) < smallest_card:
-                    smallest_card = card
+                if int(card[0]) < int(smallest_card_value):
+                    smallest_card_value = card[0]
+                    smallest_card_suit = card[1]
         
+        if smallest_card_value == 10:
+            smallest_card_value = 'T'
+        elif smallest_card_value == 11:
+            smallest_card_value = 'J'
+        elif smallest_card_value == 12:
+            smallest_card_value = 'Q'
+        elif smallest_card_value == 13:
+            smallest_card_value = 'K'
+        elif smallest_card_value == 14:
+            smallest_card_value = 'A'
+
+        smallest_card = str(smallest_card_value) + smallest_card_suit
         return smallest_card
 
 
@@ -95,12 +126,7 @@ class GreedyAgent():
 
     def remove_illegal_cards(self, hand, trick_suit, hearts_broken):
 
-        legal_present = False
-
-        for card in hand:
-            if card[1] == trick_suit:
-                legal_present = True
-                break
+        legal_present = self.is_legal_present(hand, trick_suit)
         
         legal_hand = hand.copy()
         if legal_present:
@@ -112,3 +138,12 @@ class GreedyAgent():
                 legal_hand = self.remove_hearts(legal_hand)
         
         return legal_hand
+
+
+    def is_legal_present(self, hand, trick_suit):
+
+        for card in hand:
+            if card[1] == trick_suit:
+                return True
+        return False
+                

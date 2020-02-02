@@ -40,7 +40,6 @@ agent_list[1] = GreedyAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = GreedyAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = GreedyAgent(playersNameList[3], {'print_info': False})
 
-
 # RL Agent
 """
 agent_list[0] = RLAgent(playersNameList[0], gamma, epsilon, learning_rate, input_size, batch_size, n_actions)
