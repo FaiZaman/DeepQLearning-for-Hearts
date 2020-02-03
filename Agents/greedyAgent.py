@@ -34,7 +34,6 @@ class GreedyAgent():
         elif event == 'PlayTrick':
 
             hand = observation['data']['hand']
-            #print(hand)
 
             if '2c' in hand:
                 smallest_card = '2c'
@@ -55,10 +54,8 @@ class GreedyAgent():
                     # agent plays second/third/fourth card
                     # if at least one card of tricksuit in hand, limit to cards of tricksuit
                     legal_hand = self.remove_illegal_cards(hand, trick_suit, hearts_broken)
-                    print(legal_hand)
+                    #print("legalhand:", legal_hand)
                     smallest_card = self.find_smallest_card(legal_hand)
-
-            print(smallest_card)
 
             return {
                 "event_name": "PlayTrick_Action",
@@ -119,10 +116,12 @@ class GreedyAgent():
     def remove_hearts(self, hand):
 
         no_hearts_hand = hand.copy()
-        for card in no_hearts_hand:
-            if card[1] == 'h':
-                del no_hearts_hand[no_hearts_hand.index(card)]
+        for card_index in range(len(no_hearts_hand) - 1, -1, -1):
+            if no_hearts_hand[card_index][1] == 'h':
+                del no_hearts_hand[card_index]
 
+        if no_hearts_hand == []:
+            return hand
         return no_hearts_hand
 
 
