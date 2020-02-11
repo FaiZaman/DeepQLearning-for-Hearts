@@ -1,7 +1,9 @@
 import random
 from datetime import datetime
 
-class RandomAI:
+class RandomAgent:
+
+
     def __init__(self, name, params = None):
         random.seed(datetime.now())
         self.name = name
@@ -11,14 +13,18 @@ class RandomAI:
         else:
             self.print_info = False
     
-    def Do_Action(self, observation):
-        if observation['event_name'] == 'GameStart':
+
+    def perform_action(self, observation):
+
+        event = observation['event_name']
+
+        if event == 'GameStart':
             if self.print_info:
                 print(observation)
-        elif observation['event_name'] == 'NewRound':
+        elif event == 'NewRound':
             if self.print_info:
                 print(observation)
-        elif observation['event_name'] == 'PassCards':
+        elif event == 'PassCards':
             if self.print_info:
                 print(observation)
             
@@ -35,13 +41,14 @@ class RandomAI:
                     }
                 }
         
-        elif observation['event_name'] == 'ShowPlayerHand':
+        elif event == 'ShowPlayerHand':
             if self.print_info:
                 print(observation)
 
-        elif observation['event_name'] == 'PlayTrick':
+        elif event == 'PlayTrick':
+            print("===========", observation, "==========")
             if self.print_info:
-                print(observation)
+                print("===========", observation, "==========")
 
             hand = observation['data']['hand']
             if '2c' in hand:
@@ -58,15 +65,15 @@ class RandomAI:
                         'action': {'card': choose_card}
                     }
                 }
-        elif observation['event_name'] == 'ShowTrickAction':
+        elif event == 'ShowTrickAction':
             if self.print_info:
                 print(observation)
-        elif observation['event_name'] == 'ShowTrickEnd':
+        elif event == 'ShowTrickEnd':
             if self.print_info:
                 print(observation)
-        elif observation['event_name'] == 'RoundEnd':
+        elif event == 'RoundEnd':
             if self.print_info:
                 print(observation)
-        elif observation['event_name'] == 'GameOver':
+        elif event == 'GameOver':
             if self.print_info:
-                print(observation)            
+                print(observation)       

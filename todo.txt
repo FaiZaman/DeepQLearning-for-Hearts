@@ -1,0 +1,4 @@
+A better greedy agent can be created by first checking if hearts is broken
+If true then choose biggest card, otherwise choose smallest card
+If true choose biggest except for QoS
+Riskier but better overall

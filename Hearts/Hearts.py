@@ -102,11 +102,8 @@ class HeartsEnv(Env):
         self.trickWinner = self.currentTrick.winner
         p = self.players[self.trickWinner]
         p.trickWon(self.currentTrick.trick)
-        #print(self._printCurrentTrick())
-        #print (p.name + " won the trick.")
 
     def _passCards(self, index, action_data):
-        #print (action_data['passCards'])
         passTo = self.passes[self.trickNum]  # how far to pass cards
         passTo = (index + passTo) % len(self.players)  # the index to which cards are passed
         
@@ -372,7 +369,7 @@ class HeartsEnv(Env):
                 # player tries to play off suit but has trick suit
                 if addCard is not None and addCard.suit != self.currentTrick.suit:
                     if current_player.hasSuit(self.currentTrick.suit):
-                        print ("Must play the suit of the current trick.")
+                        #print ("Must play the suit of the current trick.")
                         addCard = None
                     elif addCard.suit == Suit(hearts):
                         self.heartsBroken = True
@@ -503,7 +500,7 @@ class HeartsEnv(Env):
         
         reward = {}
         for current_player_i in range(len(self.players)):
-            reward[self.players[current_player_i].name] = this_round_score[current_player_i]
+            reward[self.players[current_player_i].name] = -(this_round_score[current_player_i])
         return reward
         
     def _event_GameOver(self):

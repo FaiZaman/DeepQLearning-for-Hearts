@@ -1,13 +1,22 @@
-class Human:
+
+
+class HumanAgent:
+
+
     def __init__(self, name, params):
+
         self.name = name
     
-    def Do_Action(self, observation):
-        if observation['event_name'] == 'GameStart':
+    
+    def perform_action(self, observation):
+
+        event = observation['event_name']
+
+        if event == 'GameStart':
             print(observation)
-        elif observation['event_name'] == 'NewRound':
+        elif event == 'NewRound':
             print(observation)
-        elif observation['event_name'] == 'PassCards':
+        elif event == 'PassCards':
             print(observation)
             passCards = []
             for i in range(3):
@@ -22,10 +31,10 @@ class Human:
                     }
                 }
         
-        elif observation['event_name'] == 'ShowPlayerHand':
+        elif event == 'ShowPlayerHand':
             print(observation)
         
-        elif observation['event_name'] == 'PlayTrick':
+        elif event == 'PlayTrick':
             print(observation)
             hand = observation['data']['hand']
             if '2c' in hand:
@@ -40,11 +49,11 @@ class Human:
                         'action': {'card': choose_card}
                     }
                 }
-        elif observation['event_name'] == 'ShowTrickAction':
+        elif event == 'ShowTrickAction':
             print(observation)
-        elif observation['event_name'] == 'ShowTrickEnd':
+        elif event == 'ShowTrickEnd':
             print(observation)
-        elif observation['event_name'] == 'RoundEnd':
+        elif event == 'RoundEnd':
             print(observation)
-        elif observation['event_name'] == 'GameOver':
+        elif event == 'GameOver':
             print(observation)            

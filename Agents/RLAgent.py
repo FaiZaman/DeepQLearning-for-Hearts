@@ -3,12 +3,13 @@ import random as rand
 import numpy as np
 from Network import DeepQNetwork
 
-class Agent(object):
+class RLAgent(object):
 
     # batch size = number of experiences sampled
-    def __init__(self, gamma, epsilon, learning_rate, input_size, batch_size, n_actions,    # gamma = discount factor
+    def __init__(self, name, gamma, epsilon, learning_rate, input_size, batch_size, n_actions,    # gamma = discount factor
                  max_mem_size=1000000, epsilon_min=0.01, epsilon_decrement = 0.996):        # epsilon for epsilon greedy
 
+        self.name = name
         self.gamma = gamma
         self.epsilon = epsilon
         self.batch_size = batch_size
@@ -50,16 +51,44 @@ class Agent(object):
     
     def choose_action(self, observation):
 
-        random_number = rand.random()
+        # get event and hand name
+        event = observation['event_name']
+        hand = observation['data']['hand']
 
-        # epsilon greedy policy
-        if rand < self.epsilon:
-            action = np.random(self.action_space)
-        else:
-            actions = self.Q_eval.forward(observation)      # get action list from neural network
-            action = T.argmax(actions).item()               # choose action with greatest value
+        # choose 3 random cards to pass if passing event
+        if event == 'PassCards':
+            passCards = rand.sample(hand, 3)
+            
+            return {
+                "event_name": "PassCards_Action",
+                "data": {
+                    'playerName': self.name,
+                    'action': { 'passCards': passCards }
+                }
+            }
         
-        return action
+        elif event == 'PlayTrick':
+
+            if '2c' in hand:
+                card_chosen = '2c'
+            else:
+
+                # epsilon greedy policy
+                if rand.random() < self.epsilon:
+                    action = np.random.choice(self.action_space)
+                else:
+                    actions = self.Q_eval.forward(observation)      # get action list from neural network
+                    action = T.argmax(actions).item()               # choose action with greatest value
+                
+                print(action, hand)
+                card_chosen = hand[action]
+                return {
+                    "event_name": "PlayTrick_Action",
+                    "data": {
+                        'playerName': self.name,
+                        'action': { 'card': card_chosen }
+                    }
+                }
 
     
     def learn(self):
@@ -77,6 +106,8 @@ class Agent(object):
         batch = np.random.choice(max_memory, self.batch_size)
         state_batch = self.state_memory[batch]
         action_batch = self.action_memory[batch]
+        action_values = np.array(self.action_space, dtype=uint8)
+        action_indices = np.dot(action_batch, action_values)
         reward_batch = self.reward_memory[batch]
         terminal_batch = self.terminal_memory[batch]
         new_state_batch = self.new_state_memory[batch]
