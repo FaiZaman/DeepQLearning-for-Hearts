@@ -31,6 +31,13 @@ class GreedyAgent():
                             pass_list.append(card)
                         else:
                             break
+            if len(pass_list) < 3:
+                for card in hand:
+                    if card[0] == '7' or card[0] == '6' or card[0] == '5':
+                        if len(pass_list) < 3:
+                            pass_list.append(card)
+                        else:
+                            break
 
             return {
                 "event_name": "PassCards_Action",
@@ -43,7 +50,7 @@ class GreedyAgent():
         elif event == 'PlayTrick':
 
             hand = observation['data']['hand']
-            print(hand, len(hand))
+
             if '2c' in hand:
                 smallest_card = '2c'
             else:
@@ -61,7 +68,7 @@ class GreedyAgent():
                 else:
                     # agent plays second/third/fourth card
                     # if at least one card of tricksuit in hand, limit to cards of tricksuit
-                    legal_hand = self.remove_illegal_cards(hand, trick_suit, hearts_broken)
+                    legal_hand = self.remove_illegal_cards(hand, trick_suit, trick_number, hearts_broken)
                     smallest_card = self.find_smallest_card(legal_hand)
 
             return {
@@ -74,8 +81,6 @@ class GreedyAgent():
     
 
     def find_smallest_card(self, hand):
-
-        print(hand)
 
         smallest_card_value = 15
         smallest_card_suit = 'c'
@@ -134,7 +139,7 @@ class GreedyAgent():
         return no_hearts_hand
 
 
-    def remove_illegal_cards(self, hand, trick_suit, hearts_broken):
+    def remove_illegal_cards(self, hand, trick_suit, trick_number, hearts_broken):
 
         legal_present = self.is_legal_present(hand, trick_suit)
 
@@ -145,7 +150,10 @@ class GreedyAgent():
                     legal_hand.append(card)
             return legal_hand
         else:
-            return hand
+            if trick_number == 1:
+                return self.remove_hearts(hand.copy())
+            else:
+                return hand
 
 
     def is_legal_present(self, hand, trick_suit):
