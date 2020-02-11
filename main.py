@@ -34,7 +34,6 @@ agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
 """
 
 # Greedy Agent
-
 agent_list[0] = GreedyAgent(playersNameList[0], {'print_info': False})
 agent_list[1] = GreedyAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = GreedyAgent(playersNameList[2], {'print_info': False})

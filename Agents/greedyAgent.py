@@ -18,11 +18,20 @@ class GreedyAgent():
             pass_list = []
 
             # choose the cards with the greatest value to swap
-            while len(pass_list) < 3:
-                for card in hand:
-                    if card[0] == 'A' or card[0] == 'K' or card[0] == 'Q' or card[0] == 'J':
+            for card in hand:
+                if card[0] == 'A' or card[0] == 'K' or card[0] == 'Q' or card[0] == 'J':
+                    if len(pass_list) < 3:
                         pass_list.append(card)
-            
+                    else:
+                        break
+            if len(pass_list) < 3:
+                for card in hand:
+                    if card[0] == 'T' or card[0] == '9' or card[0] == '8':
+                        if len(pass_list) < 3:
+                            pass_list.append(card)
+                        else:
+                            break
+
             return {
                 "event_name": "PassCards_Action",
                 "data": {
@@ -34,14 +43,13 @@ class GreedyAgent():
         elif event == 'PlayTrick':
 
             hand = observation['data']['hand']
-
+            print(hand, len(hand))
             if '2c' in hand:
                 smallest_card = '2c'
             else:
                 hearts_broken = observation['data']['IsHeartsBroken']
                 trick_suit = observation['data']['trickSuit']
                 trick_number = observation['data']['trickNum']
-
                 if trick_suit == "Unset":
                     if hearts_broken and trick_number > 1:
                         # agent plays first card of any suit since hearts is broken
@@ -54,7 +62,6 @@ class GreedyAgent():
                     # agent plays second/third/fourth card
                     # if at least one card of tricksuit in hand, limit to cards of tricksuit
                     legal_hand = self.remove_illegal_cards(hand, trick_suit, hearts_broken)
-                    #print("legalhand:", legal_hand)
                     smallest_card = self.find_smallest_card(legal_hand)
 
             return {
@@ -67,6 +74,8 @@ class GreedyAgent():
     
 
     def find_smallest_card(self, hand):
+
+        print(hand)
 
         smallest_card_value = 15
         smallest_card_suit = 'c'
@@ -136,9 +145,7 @@ class GreedyAgent():
                     legal_hand.append(card)
             return legal_hand
         else:
-            if not(hearts_broken):
-                legal_hand = self.remove_hearts(hand.copy())
-                return legal_hand
+            return hand
 
 
     def is_legal_present(self, hand, trick_suit):
