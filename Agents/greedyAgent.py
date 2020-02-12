@@ -125,7 +125,7 @@ class GreedyAgent():
 
         smallest_card = str(smallest_card_value) + smallest_card_suit
         return smallest_card
-
+    
 
     def remove_hearts(self, hand):
 

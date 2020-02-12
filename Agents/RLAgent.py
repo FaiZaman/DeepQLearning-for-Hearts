@@ -74,13 +74,14 @@ class RLAgent(object):
             else:
 
                 # epsilon greedy policy
+                print(self.action_space)
                 if rand.random() < self.epsilon:
                     action = np.random.choice(self.action_space)
                 else:
                     actions = self.Q_eval.forward(observation)      # get action list from neural network
                     action = T.argmax(actions).item()               # choose action with greatest value
                 
-                print(action, hand)
+                #print(action, hand)
                 card_chosen = hand[action]
                 return {
                     "event_name": "PlayTrick_Action",

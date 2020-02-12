@@ -57,7 +57,6 @@ class RandomAgent:
                 choose_card = random.choice(observation['data']['hand'])
                 if self.print_info:
                     print(self.name, ' choose card: ', choose_card)
-
             return {
                     "event_name" : "PlayTrick_Action",
                     "data" : {
