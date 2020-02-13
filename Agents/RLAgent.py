@@ -73,15 +73,18 @@ class RLAgent(object):
                 card_chosen = '2c'
             else:
 
+                trick_suit = observation['data']['trickSuit']
+                trick_number = observation['data']['trickNum']
+                hearts_broken = observation['data']['IsHeartsBroken']
+                playable_hand = self.get_real_hand(hand, trick_suit, trick_number, hearts_broken)
+
                 # epsilon greedy policy
-                print(self.action_space)
                 if rand.random() < self.epsilon:
                     action = np.random.choice(self.action_space)
                 else:
                     actions = self.Q_eval.forward(observation)      # get action list from neural network
                     action = T.argmax(actions).item()               # choose action with greatest value
                 
-                #print(action, hand)
                 card_chosen = hand[action]
                 return {
                     "event_name": "PlayTrick_Action",
@@ -134,3 +137,57 @@ class RLAgent(object):
         loss = self.Q_eval.loss(q_target, q_predicted).to(self.Q_eval.device)
         loss.backward()
         self.Q_eval.optimiser.step()
+
+
+    def get_real_hand(self, hand, trick_suit, trick_number, hearts_broken):
+
+        if trick_suit == "Unset":
+            if hearts_broken and trick_number > 1:
+                # agent can play card of any suit since hearts is broken
+                return hand
+            else:
+                # agent plays first card of any suit except for hearts
+                no_hearts_hand = self.remove_hearts(hand)
+                return no_hearts_hand
+        else:
+            # agent plays second/third/fourth card
+            # if at least one card of tricksuit in hand, limit to cards of tricksuit
+            legal_hand = self.remove_illegal_cards(hand, trick_suit, trick_number, hearts_broken)
+            return legal_hand
+            
+
+    def remove_hearts(self, hand):
+
+        no_hearts_hand = hand.copy()
+        for card_index in range(len(no_hearts_hand) - 1, -1, -1):
+            if no_hearts_hand[card_index][1] == 'h':
+                del no_hearts_hand[card_index]
+
+        if no_hearts_hand == []:
+            return hand
+        return no_hearts_hand
+
+
+    def remove_illegal_cards(self, hand, trick_suit, trick_number, hearts_broken):
+
+        legal_present = self.is_legal_present(hand, trick_suit)
+
+        if legal_present:
+            legal_hand = []
+            for card in hand:
+                if card[1] == trick_suit:
+                    legal_hand.append(card)
+            return legal_hand
+        else:
+            if trick_number == 1:
+                return self.remove_hearts(hand.copy())
+            else:
+                return hand
+
+
+    def is_legal_present(self, hand, trick_suit):
+
+        for card in hand:
+            if card[1] == trick_suit:
+                return True
+        return False
