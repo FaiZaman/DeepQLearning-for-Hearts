@@ -22,7 +22,7 @@ class RLAgent(object):
         self.memory_size = max_mem_size
         self.memory_counter = 0     # index of how many memories are stored
         self.action_space = [i for i in range(n_actions)]
-        self.Q_eval = DeepQNetwork(learning_rate, input_size, hidden_size=4, n_actions=13)
+        self.Network = DeepQNetwork(learning_rate, input_size, hidden_size=4, n_actions=13)
         self.state_memory = np.zeros((self.memory_size, *input_size))
         self.new_state_memory = np.zeros((self.memory_size, *input_size))   # used to overwrite memories as agent acquires them
         self.action_memory = np.zeros((self.memory_size, self.n_actions), dtype=np.uint8)
@@ -77,22 +77,32 @@ class RLAgent(object):
                 trick_number = observation['data']['trickNum']
                 hearts_broken = observation['data']['IsHeartsBroken']
                 playable_hand = self.get_real_hand(hand, trick_suit, trick_number, hearts_broken)
+                playable_action_space = []
+
+                for legal_card in playable_hand:
+                    for card in hand:
+                        if legal_card == card:
+                            playable_action_space.append(hand.index(card))      
+                    
+                self.action_space = playable_action_space
 
                 # epsilon greedy policy
                 if rand.random() < self.epsilon:
                     action = np.random.choice(self.action_space)
                 else:
-                    actions = self.Q_eval.forward(observation)      # get action list from neural network
+                    actions = self.Network.forward(observation)      # get action list from neural network
                     action = T.argmax(actions).item()               # choose action with greatest value
                 
                 card_chosen = hand[action]
-                return {
-                    "event_name": "PlayTrick_Action",
-                    "data": {
-                        'playerName': self.name,
-                        'action': { 'card': card_chosen }
-                    }
+                self.action_space = [i for i in range(13)]
+
+            return {
+                "event_name": "PlayTrick_Action",
+                "data": {
+                    'playerName': self.name,
+                    'action': { 'card': card_chosen }
                 }
+            }
 
     
     def learn(self):
@@ -100,7 +110,7 @@ class RLAgent(object):
         if self.memory_counter < self.batch_size:   # improves correlation
             
             # reset grad and set maximum memory
-            self.Q_eval.optimiser.zero_grad()
+            self.Network.optimiser.zero_grad()
             if self.memory_counter < self.memory_size:
                 max_memory = self.memory_counter
             else:
@@ -116,12 +126,12 @@ class RLAgent(object):
         terminal_batch = self.terminal_memory[batch]
         new_state_batch = self.new_state_memory[batch]
 
-        reward_batch = T.Tensor(reward_batch).to(self.Q_eval.device)
-        terminal_batch = T.Tensor(terminal_batch).to(self.Q_eval.device)
+        reward_batch = T.Tensor(reward_batch).to(self.Network.device)
+        terminal_batch = T.Tensor(terminal_batch).to(self.Network.device)
 
-        q_predicted = self.Q_eval.forward(state_batch).to(self.Q_eval.device)
-        q_target = self.Q_eval.forward(state_batch).to(self.Q_eval.device)
-        q_next = self.Q_eval.forward(new_state_batch).to(self.Q_eval.device)
+        q_predicted = self.Network.forward(state_batch).to(self.Network.device)
+        q_target = self.Network.forward(state_batch).to(self.Network.device)
+        q_next = self.Network.forward(new_state_batch).to(self.Network.device)
 
         # update the Q-values using the equation Q(s, a) = r(s, a) + gamma*max(Q(s', a))
         batch_index = np.arrange(self.batch_size, dtype=np.int32)
@@ -134,9 +144,9 @@ class RLAgent(object):
             self.epsilon = self.epsilon_min
         
         # set loss function (mean squared error), backwards propagation, and optimiser step
-        loss = self.Q_eval.loss(q_target, q_predicted).to(self.Q_eval.device)
+        loss = self.Network.loss(q_target, q_predicted).to(self.Network.device)
         loss.backward()
-        self.Q_eval.optimiser.step()
+        self.Network.optimiser.step()
 
 
     def get_real_hand(self, hand, trick_suit, trick_number, hearts_broken):

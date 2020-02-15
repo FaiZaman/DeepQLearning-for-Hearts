@@ -9,6 +9,7 @@ Riskier but better overall
 
 Modify the action space so that it only contains the values that the agent can legally play 
 at the specific state - size 13 still, but keep some as -1 or 0 to determine which ones are usable
+Done this - hits error on line 87 for infinite loop - needs fixing
 
 # Network inputs
 
