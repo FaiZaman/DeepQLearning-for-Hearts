@@ -79,9 +79,11 @@ for _ in range(num_episodes):
 
         # get and store environment data after making action, then learn and reset observation
         new_observation, reward, done, info = env.step(action)
-        if isinstance(agent, RLAgent):
-            RLAgent.store_transition(observation, action, reward, new_observation, done)
-            RLAgent.learn()
+        for agent in agent_list:
+            if isinstance(agent, RLAgent):
+                print("storing/learning")
+                agent.store_transition(observation, action, reward, new_observation, done)
+                agent.learn()
         observation = new_observation
 
         if reward:

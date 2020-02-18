@@ -14,3 +14,12 @@ Done this - hits error on line 87 for infinite loop - needs fixing
 # Network inputs
 
 Experiment with different inputs, eg [52, 13] or [1, 52] etc
+
+# Testing
+
+Test with DQN agent from stable baselines to check whether environment is fine
+
+# Illegal moves
+
+Possibly allow the agent to play illegal moves, but disqualify it if it does to ensure it learns what
+moves are illegal

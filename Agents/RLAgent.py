@@ -34,7 +34,10 @@ class RLAgent(object):
     def store_transition(self, state, action, reward, state_, terminal):
 
         index = self.memory_counter % self.memory_size    # find position in memory
-        self.state_memory[index] = state
+        self.convert_state_to_tensor(state)
+
+        print(index, self.state_memory, state)
+        self.state_memory[index] = T.cat(state).unsqueeze(0)
 
         # one hot encoding
         actions = np.zeros(self.n_actions)
@@ -85,11 +88,14 @@ class RLAgent(object):
                             playable_action_space.append(hand.index(card))      
                     
                 self.action_space = playable_action_space
+                print(self.epsilon)
 
                 # epsilon greedy policy
                 if rand.random() < self.epsilon:
+                    print("random action taken")
                     action = np.random.choice(self.action_space)
                 else:
+                    print("not random action chosen")
                     actions = self.Network.forward(observation)      # get action list from neural network
                     action = T.argmax(actions).item()               # choose action with greatest value
                 
@@ -201,3 +207,39 @@ class RLAgent(object):
             if card[1] == trick_suit:
                 return True
         return False
+
+
+    def convert_state_to_tensor(self, state):
+
+        event = state['event_name']
+
+        if event == 'PassCards':
+            
+            hand = state['data']['hand']
+            data_tensor = T.zeros(52, 2)   # 52 cards in deck - first column for hand, second for table
+
+            for card in hand:
+
+                card_value = card[0]
+                card_suit = card[1]
+
+                if card_value == "T":
+                    card_value = 10
+                elif card_value == "J":
+                    card_value = 11
+                elif card_value == "Q":
+                    card_value = 12
+                elif card_value == "K":
+                    card_value = 13
+                elif card_value == "A":
+                    card_value = 14
+
+                card_value = int(card_value)
+
+                # encode clubs, diamonds, hearts, spades
+                if card_suit == 'c':
+                    if card_value:
+                        pass
+
+                data_tensor[i] = 1
+
