@@ -34,17 +34,18 @@ class RLAgent(object):
     def store_transition(self, state, action, reward, state_, terminal):
 
         index = self.memory_counter % self.memory_size    # find position in memory
-        self.convert_state_to_tensor(state)
+        state_tensor = self.convert_state_to_tensor(state)
 
-        print(index, self.state_memory, state)
-        self.state_memory[index] = T.cat(state).unsqueeze(0)
+        print(index, self.state_memory, state_tensor)
+        self.state_memory[index] = state_tensor
 
         # one hot encoding
         actions = np.zeros(self.n_actions)
         actions[action] = 1.0
         self.action_memory[index] = actions
 
-        # setting memory
+        print(terminal)
+        # setting memory    
         self.reward_memory[index] = reward
         self.terminal_memory[index] = 1 - terminal
         self.new_state_memory[index] = state_
@@ -217,18 +218,32 @@ class RLAgent(object):
         if event == 'PassCards':    # encode hand and leave table cards empty
             
             hand = state['data']['hand']
-            data_tensor = self.convert_hand(hand, data_tensor)
+            data_tensor = self.convert_cards(hand, data_tensor, column=0)
         
         elif event == 'PlayTrick':  # encode both hand and table cards
 
             hand = state['data']['hand']
+            trick_suit = state['data']['trickSuit']
             data_tensor = self.convert_hand(hand, data_tensor)
 
-                    
+            # if no cards played yet no encoding; leave as zeros
+            if trick_suit == "Unset":
+                pass
+            else:
+                current_trick = state['data']['currentTrick']
+                table_cards = []
 
-    def convert_hand(self, hand, tensor):
+                for i in current_trick:
+                    table_cards.append(current_trick['card'])
+                
+                self.convert_cards(table_cards, data_tensor, column=1)
 
-        for card in hand:
+        return data_tensor
+     
+
+    def convert_cards(self, card_list, tensor, column):
+
+        for card in card_list:
 
             card_value = card[0]
             card_suit = card[1]
@@ -257,5 +272,6 @@ class RLAgent(object):
             else:                   # spades
                 index = (card_value - 2) + 39
 
-            tensor[index][0] = 1
+            tensor[index][column] = 1
             return tensor
+

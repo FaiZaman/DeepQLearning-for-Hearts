@@ -557,7 +557,7 @@ class HeartsEnv(Env):
 
         
     def step(self, action_data):
-        observation, reward, done, info = None, None, None, None
+        observation, reward, done, info = None, None, False, None
             
         if self.event == 'NewRound':
             self._event_NewRound()

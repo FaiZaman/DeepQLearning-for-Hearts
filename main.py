@@ -14,7 +14,7 @@ agent_list = [0, 0, 0, 0]
 gamma = 0.999
 epsilon = 1
 learning_rate = 0.02
-input_size = [2]
+input_size = [52, 2]
 batch_size = 64
 n_actions = 13
 
