@@ -7,16 +7,15 @@ import torch.optim as optim
 class DeepQNetwork(nn.Module):
 
     # initialises the networks with one hidden layer
-    def __init__(self, learning_rate, input_size, hidden_size, n_actions):
+    def __init__(self, learning_rate, input_size, n_actions):
 
         super(DeepQNetwork, self).__init__()
         self.input_size = input_size
-        self.hidden_size = hidden_size
         self.n_actions = n_actions
 
         # connect layers
-        self.input_hidden_connected_layer = nn.Linear(*self.input_size, self.hidden_size)
-        self.hidden_output_connected_layer = nn.Linear(self.hidden_size, self.n_actions)
+        self.input_hidden_connected_layer = nn.Linear(*self.input_size, 256)
+        self.hidden_output_connected_layer = nn.Linear(256, self.n_actions)
 
         # optimise the network
         self.optimiser = optim.Adam(self.parameters(), lr=learning_rate)

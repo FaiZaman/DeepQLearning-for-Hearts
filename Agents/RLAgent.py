@@ -22,7 +22,7 @@ class RLAgent(object):
         self.memory_size = max_mem_size
         self.memory_counter = 0     # index of how many memories are stored
         self.action_space = [i for i in range(n_actions)]
-        self.Network = DeepQNetwork(learning_rate, input_size, hidden_size=4, n_actions=13)
+        self.Network = DeepQNetwork(learning_rate, input_size, n_actions=13)
         self.state_memory = np.zeros((self.memory_size, *input_size))
         self.new_state_memory = np.zeros((self.memory_size, *input_size))   # used to overwrite memories as agent acquires them
         self.action_memory = np.zeros((self.memory_size, self.n_actions), dtype=np.uint8)
@@ -31,24 +31,24 @@ class RLAgent(object):
 
 
     # function for storing memories
-    def store_transition(self, state, action, reward, state_, terminal):
+    def store_transition(self, current_state, action, reward, next_state, terminal):
 
         index = self.memory_counter % self.memory_size    # find position in memory
-        state_tensor = self.convert_state_to_tensor(state)
-
-        print(index, self.state_memory, state_tensor)
-        self.state_memory[index] = state_tensor
+        current_state_tensor = self.convert_state_to_tensor(current_state)
+        self.state_memory[index] = current_state_tensor
+        print(type(current_state_tensor))
 
         # one hot encoding
         actions = np.zeros(self.n_actions)
         actions[action] = 1.0
         self.action_memory[index] = actions
 
-        print(terminal)
         # setting memory    
         self.reward_memory[index] = reward
         self.terminal_memory[index] = 1 - terminal
-        self.new_state_memory[index] = state_
+
+        next_state_tensor = self.convert_state_to_tensor(next_state)
+        self.new_state_memory[index] = next_state_tensor
         
         self.memory_counter += 1
 
@@ -89,7 +89,6 @@ class RLAgent(object):
                             playable_action_space.append(hand.index(card))      
                     
                 self.action_space = playable_action_space
-                print(self.epsilon)
 
                 # epsilon greedy policy
                 if rand.random() < self.epsilon:
@@ -127,7 +126,7 @@ class RLAgent(object):
         batch = np.random.choice(max_memory, self.batch_size)
         state_batch = self.state_memory[batch]
         action_batch = self.action_memory[batch]
-        action_values = np.array(self.action_space, dtype=uint8)
+        action_values = np.array(self.action_space, dtype=np.uint8)
         action_indices = np.dot(action_batch, action_values)
         reward_batch = self.reward_memory[batch]
         terminal_batch = self.terminal_memory[batch]
