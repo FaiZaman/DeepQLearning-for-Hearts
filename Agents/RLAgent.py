@@ -212,34 +212,50 @@ class RLAgent(object):
     def convert_state_to_tensor(self, state):
 
         event = state['event_name']
+        data_tensor = T.zeros(52, 2)   # 52 cards in deck - first column for hand, second for table
 
-        if event == 'PassCards':
+        if event == 'PassCards':    # encode hand and leave table cards empty
             
             hand = state['data']['hand']
-            data_tensor = T.zeros(52, 2)   # 52 cards in deck - first column for hand, second for table
+            data_tensor = self.convert_hand(hand, data_tensor)
+        
+        elif event == 'PlayTrick':  # encode both hand and table cards
 
-            for card in hand:
+            hand = state['data']['hand']
+            data_tensor = self.convert_hand(hand, data_tensor)
 
-                card_value = card[0]
-                card_suit = card[1]
+                    
 
-                if card_value == "T":
-                    card_value = 10
-                elif card_value == "J":
-                    card_value = 11
-                elif card_value == "Q":
-                    card_value = 12
-                elif card_value == "K":
-                    card_value = 13
-                elif card_value == "A":
-                    card_value = 14
+    def convert_hand(self, hand, tensor):
 
-                card_value = int(card_value)
+        for card in hand:
 
-                # encode clubs, diamonds, hearts, spades
-                if card_suit == 'c':
-                    if card_value:
-                        pass
+            card_value = card[0]
+            card_suit = card[1]
 
-                data_tensor[i] = 1
+            if card_value == "T":
+                card_value = 10
+            elif card_value == "J":
+                card_value = 11
+            elif card_value == "Q":
+                card_value = 12
+            elif card_value == "K":
+                card_value = 13
+            elif card_value == "A":
+                card_value = 14
 
+            card_value = int(card_value)
+
+            # encode clubs, diamonds, hearts, spades
+            # encoding agent's hand
+            if card_suit == 'c':    # clubs
+                index = (card_value - 2) + 0
+            elif card_suit == 'd':  # diamonds
+                index = (card_value - 2) + 13
+            elif card_suit == 'h':  # hearts
+                index = (card_value - 2) + 26
+            else:                   # spades
+                index = (card_value - 2) + 39
+
+            tensor[index][0] = 1
+            return tensor
