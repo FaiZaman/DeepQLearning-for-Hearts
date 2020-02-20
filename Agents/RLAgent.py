@@ -6,7 +6,7 @@ from Network import DeepQNetwork
 class RLAgent(object):
 
     # batch size = number of experiences sampled
-    def __init__(self, name, gamma, epsilon, learning_rate, input_size, batch_size, n_actions,    # gamma = discount factor
+    def __init__(self, name, gamma, epsilon, learning_rate, batch_size, n_actions,    # gamma = discount factor
                  max_mem_size=1000000, epsilon_min=0.01, epsilon_decrement = 0.996):        # epsilon for epsilon greedy
 
         self.name = name
@@ -22,9 +22,9 @@ class RLAgent(object):
         self.memory_size = max_mem_size
         self.memory_counter = 0     # index of how many memories are stored
         self.action_space = [i for i in range(n_actions)]
-        self.Network = DeepQNetwork(learning_rate, input_size, n_actions=13)
-        self.state_memory = np.zeros((self.memory_size, *input_size))
-        self.new_state_memory = np.zeros((self.memory_size, *input_size))   # used to overwrite memories as agent acquires them
+        self.Network = DeepQNetwork(learning_rate, n_actions=13)
+        self.state_memory = np.zeros((self.memory_size, *[2, 52]))
+        self.new_state_memory = np.zeros((self.memory_size, *[2, 52]))   # used to overwrite memories as agent acquires them
         self.action_memory = np.zeros((self.memory_size, self.n_actions), dtype=np.uint8)
         self.reward_memory = np.zeros(self.memory_size)
         self.terminal_memory = np.zeros(self.memory_size, dtype=np.uint8)   # sequence of done flags
@@ -36,11 +36,13 @@ class RLAgent(object):
         index = self.memory_counter % self.memory_size    # find position in memory
         current_state_tensor = self.convert_state_to_tensor(current_state)
         self.state_memory[index] = current_state_tensor
-        print(type(current_state_tensor))
 
         # one hot encoding
         actions = np.zeros(self.n_actions)
-        actions[action] = 1.0
+        print(action, type(action))
+        if current_state['event_name'] == 'PassCards':
+            action = rand.sample(self.action_space, 1)
+        actions[action] = 1
         self.action_memory[index] = actions
 
         # setting memory    
@@ -140,8 +142,9 @@ class RLAgent(object):
         q_next = self.Network.forward(new_state_batch).to(self.Network.device)
 
         # update the Q-values using the equation Q(s, a) = r(s, a) + gamma*max(Q(s', a))
-        batch_index = np.arrange(self.batch_size, dtype=np.int32)
-        q_target[batch_index, action_indices] = reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
+        batch_index = np.arange(self.batch_size, dtype=np.int32)
+        print(reward_batch.size(), q_next.size(), terminal_batch.size())
+        self.gamma * T.max(q_next, dim=1)[0]
 
         # update epsilon for epsilon greedy
         if self.epsilon > self.epsilon_min:
@@ -212,18 +215,18 @@ class RLAgent(object):
     def convert_state_to_tensor(self, state):
 
         event = state['event_name']
-        data_tensor = T.zeros(52, 2)   # 52 cards in deck - first column for hand, second for table
+        data_tensor = T.zeros(2, 52)   # 52 cards in deck - first row for hand, second for table
 
         if event == 'PassCards':    # encode hand and leave table cards empty
             
             hand = state['data']['hand']
-            data_tensor = self.convert_cards(hand, data_tensor, column=0)
+            data_tensor = self.convert_cards(hand, data_tensor, row=0)
         
         elif event == 'PlayTrick':  # encode both hand and table cards
 
             hand = state['data']['hand']
             trick_suit = state['data']['trickSuit']
-            data_tensor = self.convert_hand(hand, data_tensor)
+            data_tensor = self.convert_cards(hand, data_tensor, row=1)
 
             # if no cards played yet no encoding; leave as zeros
             if trick_suit == "Unset":
@@ -235,12 +238,12 @@ class RLAgent(object):
                 for i in current_trick:
                     table_cards.append(current_trick['card'])
                 
-                self.convert_cards(table_cards, data_tensor, column=1)
+                self.convert_cards(table_cards, data_tensor, row=1)
 
         return data_tensor
      
 
-    def convert_cards(self, card_list, tensor, column):
+    def convert_cards(self, card_list, tensor, row):
 
         for card in card_list:
 
@@ -271,6 +274,9 @@ class RLAgent(object):
             else:                   # spades
                 index = (card_value - 2) + 39
 
-            tensor[index][column] = 1
+            tensor[row][index] = 1
             return tensor
 
+
+    def get_action_from_state(self, state):
+        pass
