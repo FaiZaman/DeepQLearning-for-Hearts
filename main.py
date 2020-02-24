@@ -15,7 +15,7 @@ gamma = 0.999
 epsilon = 1
 learning_rate = 0.02
 batch_size = 64
-n_actions = 13
+n_actions = 52
 
 # Human vs Random
 """
@@ -80,7 +80,6 @@ for _ in range(num_episodes):
         new_observation, reward, done, info = env.step(action)
         for agent in agent_list:
             if isinstance(agent, RLAgent):
-                print("storing/learning")
                 agent.store_transition(observation, action, reward, new_observation, done)
                 agent.learn()
         observation = new_observation

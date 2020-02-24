@@ -22,7 +22,7 @@ class RLAgent(object):
         self.memory_size = max_mem_size
         self.memory_counter = 0     # index of how many memories are stored
         self.action_space = [i for i in range(n_actions)]
-        self.Network = DeepQNetwork(learning_rate, n_actions=13)
+        self.Network = DeepQNetwork(learning_rate, n_actions=52)
         self.state_memory = np.zeros((self.memory_size, *[2, 52]))
         self.new_state_memory = np.zeros((self.memory_size, *[2, 52]))   # used to overwrite memories as agent acquires them
         self.action_memory = np.zeros((self.memory_size, self.n_actions), dtype=np.uint8)
@@ -34,15 +34,34 @@ class RLAgent(object):
     def store_transition(self, current_state, action, reward, next_state, terminal):
 
         index = self.memory_counter % self.memory_size    # find position in memory
+
+        # convert state to tensor
         current_state_tensor = self.convert_state_to_tensor(current_state)
         self.state_memory[index] = current_state_tensor
 
+        # convert action to int
+        print(current_state)
+        if current_state['event_name'] == 'ShowTrickAction':
+            convertable_action = action
+            action = None
+            for player_card in current_state['data']['currentTrick']:
+                if player_card['playerName'] == "Agent":
+                    print("yep converted")
+                    action = self.convert_action(convertable_action)
+                    break
+        else:
+            action = None
+
         # one hot encoding
         actions = np.zeros(self.n_actions)
-        print(action, type(action))
         if current_state['event_name'] == 'PassCards':
             action = rand.sample(self.action_space, 1)
-        actions[action] = 1
+        
+        if action:
+            print(action)
+            actions[action] = 1
+        print(actions)
+
         self.action_memory[index] = actions
 
         # setting memory    
@@ -89,7 +108,7 @@ class RLAgent(object):
                     for card in hand:
                         if legal_card == card:
                             playable_action_space.append(hand.index(card))      
-                    
+
                 self.action_space = playable_action_space
 
                 # epsilon greedy policy
@@ -98,11 +117,12 @@ class RLAgent(object):
                     action = np.random.choice(self.action_space)
                 else:
                     print("not random action chosen")
+                    print(observation)
                     actions = self.Network.forward(observation)      # get action list from neural network
                     action = T.argmax(actions).item()               # choose action with greatest value
                 
                 card_chosen = hand[action]
-                self.action_space = [i for i in range(13)]
+                self.action_space = [i for i in range(52)]
 
             return {
                 "event_name": "PlayTrick_Action",
@@ -137,14 +157,13 @@ class RLAgent(object):
         reward_batch = T.Tensor(reward_batch).to(self.Network.device)
         terminal_batch = T.Tensor(terminal_batch).to(self.Network.device)
 
-        q_predicted = self.Network.forward(state_batch).to(self.Network.device)
+        q_predicted = self.Network.forward(state_batch).to(self.Network.device)     # (64, 2, 52)
         q_target = self.Network.forward(state_batch).to(self.Network.device)
         q_next = self.Network.forward(new_state_batch).to(self.Network.device)
 
         # update the Q-values using the equation Q(s, a) = r(s, a) + gamma*max(Q(s', a))
         batch_index = np.arange(self.batch_size, dtype=np.int32)
-        print(reward_batch.size(), q_next.size(), terminal_batch.size())
-        self.gamma * T.max(q_next, dim=1)[0]
+        q_target[batch_index, action_indices] = reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
 
         # update epsilon for epsilon greedy
         if self.epsilon > self.epsilon_min:
@@ -236,7 +255,7 @@ class RLAgent(object):
                 table_cards = []
 
                 for i in current_trick:
-                    table_cards.append(current_trick['card'])
+                    table_cards.append(i['card'])
                 
                 self.convert_cards(table_cards, data_tensor, row=1)
 
@@ -278,5 +297,36 @@ class RLAgent(object):
             return tensor
 
 
-    def get_action_from_state(self, state):
-        pass
+    def convert_action(self, action_dict):
+
+        if action_dict:
+
+            card = action_dict['data']['action']['card']
+            card_value = card[0]
+            card_suit = card[1]
+
+            if card_value == "T":
+                card_value = 10
+            elif card_value == "J":
+                card_value = 11
+            elif card_value == "Q":
+                card_value = 12
+            elif card_value == "K":
+                card_value = 13
+            elif card_value == "A":
+                card_value = 14
+
+            card_value = int(card_value)
+
+            # encode clubs, diamonds, hearts, spades
+            # encoding agent's hand
+            if card_suit == 'c':    # clubs
+                action = (card_value - 2) + 0
+            elif card_suit == 'd':  # diamonds
+                action = (card_value - 2) + 13
+            elif card_suit == 'h':  # hearts
+                action = (card_value - 2) + 26
+            else:                   # spades
+                action = (card_value - 2) + 39
+
+        return action
