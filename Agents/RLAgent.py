@@ -41,12 +41,11 @@ class RLAgent(object):
 
         # convert action to int
         print(current_state)
-        if current_state['event_name'] == 'ShowTrickAction':
+        if current_state['event_name'] == 'ShowTrickAction' and action:
             convertable_action = action
             action = None
             for player_card in current_state['data']['currentTrick']:
                 if player_card['playerName'] == "Agent":
-                    print("yep converted")
                     action = self.convert_action(convertable_action)
                     break
         else:
@@ -58,9 +57,7 @@ class RLAgent(object):
             action = rand.sample(self.action_space, 1)
         
         if action:
-            print(action)
             actions[action] = 1
-        print(actions)
 
         self.action_memory[index] = actions
 
@@ -118,9 +115,11 @@ class RLAgent(object):
                 else:
                     print("not random action chosen")
                     print(observation)
-                    actions = self.Network.forward(observation)      # get action list from neural network
+                    data_tensor = self.convert_state_to_tensor(observation)
+                    actions = self.Network.forward(data_tensor)      # get action list from neural network
                     action = T.argmax(actions).item()               # choose action with greatest value
                 
+                print(hand, action)
                 card_chosen = hand[action]
                 self.action_space = [i for i in range(52)]
 
@@ -144,37 +143,37 @@ class RLAgent(object):
             else:
                 max_memory = self.memory_size
 
-        # get batch memories
-        batch = np.random.choice(max_memory, self.batch_size)
-        state_batch = self.state_memory[batch]
-        action_batch = self.action_memory[batch]
-        action_values = np.array(self.action_space, dtype=np.uint8)
-        action_indices = np.dot(action_batch, action_values)
-        reward_batch = self.reward_memory[batch]
-        terminal_batch = self.terminal_memory[batch]
-        new_state_batch = self.new_state_memory[batch]
+            # get batch memories
+            batch = np.random.choice(max_memory, self.batch_size)
+            state_batch = self.state_memory[batch]
+            action_batch = self.action_memory[batch]
+            action_values = np.array(self.action_space, dtype=np.uint8)
+            action_indices = np.dot(action_batch, action_values)
+            reward_batch = self.reward_memory[batch]
+            terminal_batch = self.terminal_memory[batch]
+            new_state_batch = self.new_state_memory[batch]
 
-        reward_batch = T.Tensor(reward_batch).to(self.Network.device)
-        terminal_batch = T.Tensor(terminal_batch).to(self.Network.device)
+            reward_batch = T.Tensor(reward_batch).to(self.Network.device)
+            terminal_batch = T.Tensor(terminal_batch).to(self.Network.device)
 
-        q_predicted = self.Network.forward(state_batch).to(self.Network.device)     # (64, 2, 52)
-        q_target = self.Network.forward(state_batch).to(self.Network.device)
-        q_next = self.Network.forward(new_state_batch).to(self.Network.device)
+            q_predicted = self.Network.forward(state_batch).to(self.Network.device)     # (64, 2, 52)
+            q_target = self.Network.forward(state_batch).to(self.Network.device)
+            q_next = self.Network.forward(new_state_batch).to(self.Network.device)
 
-        # update the Q-values using the equation Q(s, a) = r(s, a) + gamma*max(Q(s', a))
-        batch_index = np.arange(self.batch_size, dtype=np.int32)
-        q_target[batch_index, action_indices] = reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
+            # update the Q-values using the equation Q(s, a) = r(s, a) + gamma*max(Q(s', a))
+            batch_index = np.arange(self.batch_size, dtype=np.int32)
+            q_target[batch_index, action_indices] = reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
 
-        # update epsilon for epsilon greedy
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decrement
-        else:
-            self.epsilon = self.epsilon_min
-        
-        # set loss function (mean squared error), backwards propagation, and optimiser step
-        loss = self.Network.loss(q_target, q_predicted).to(self.Network.device)
-        loss.backward()
-        self.Network.optimiser.step()
+            # update epsilon for epsilon greedy
+            if self.epsilon > self.epsilon_min:
+                self.epsilon *= self.epsilon_decrement
+            else:
+                self.epsilon = self.epsilon_min
+            
+            # set loss function (mean squared error), backwards propagation, and optimiser step
+            loss = self.Network.loss(q_target, q_predicted).to(self.Network.device)
+            loss.backward()
+            self.Network.optimiser.step()
 
 
     def get_real_hand(self, hand, trick_suit, trick_number, hearts_broken):
@@ -317,6 +316,7 @@ class RLAgent(object):
                 card_value = 14
 
             card_value = int(card_value)
+            action = 0
 
             # encode clubs, diamonds, hearts, spades
             # encoding agent's hand
