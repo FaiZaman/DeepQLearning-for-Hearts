@@ -23,3 +23,7 @@ Test with DQN agent from stable baselines to check whether environment is fine
 
 Possibly allow the agent to play illegal moves, but disqualify it if it does to ensure it learns what
 moves are illegal
+
+# Rewards
+
+Add rewards in between hands, not just at the end of a hand

@@ -40,7 +40,6 @@ class RLAgent(object):
         self.state_memory[index] = current_state_tensor
 
         # convert action to int
-        print(current_state)
         if current_state['event_name'] == 'ShowTrickAction' and action:
             convertable_action = action
             action = None
@@ -62,7 +61,8 @@ class RLAgent(object):
         self.action_memory[index] = actions
 
         # setting memory    
-        self.reward_memory[index] = reward
+        if reward:
+            self.reward_memory[index] = reward['Agent']
         self.terminal_memory[index] = 1 - terminal
 
         next_state_tensor = self.convert_state_to_tensor(next_state)
@@ -114,12 +114,10 @@ class RLAgent(object):
                     action = np.random.choice(self.action_space)
                 else:
                     print("not random action chosen")
-                    print(observation)
                     data_tensor = self.convert_state_to_tensor(observation)
                     actions = self.Network.forward(data_tensor)      # get action list from neural network
                     action = T.argmax(actions).item()               # choose action with greatest value
                 
-                print(hand, action)
                 card_chosen = hand[action]
                 self.action_space = [i for i in range(52)]
 
@@ -156,13 +154,14 @@ class RLAgent(object):
             reward_batch = T.Tensor(reward_batch).to(self.Network.device)
             terminal_batch = T.Tensor(terminal_batch).to(self.Network.device)
 
-            q_predicted = self.Network.forward(state_batch).to(self.Network.device)     # (64, 2, 52)
+            # input: (64, 2, 52)
+            q_predicted = self.Network.forward(state_batch).to(self.Network.device)     # (64, 2, 52) outputs
             q_target = self.Network.forward(state_batch).to(self.Network.device)
             q_next = self.Network.forward(new_state_batch).to(self.Network.device)
 
             # update the Q-values using the equation Q(s, a) = r(s, a) + gamma*max(Q(s', a))
             batch_index = np.arange(self.batch_size, dtype=np.int32)
-            q_target[batch_index, action_indices] = reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
+            q_target[batch_index][action_indices] = reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
 
             # update epsilon for epsilon greedy
             if self.epsilon > self.epsilon_min:

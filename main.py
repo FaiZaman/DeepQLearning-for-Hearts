@@ -14,7 +14,7 @@ agent_list = [0, 0, 0, 0]
 gamma = 0.999
 epsilon = 1
 learning_rate = 0.02
-batch_size = 64
+batch_size = 1
 n_actions = 52
 
 # Human vs Random
@@ -45,15 +45,17 @@ agent_list[1] = GreedyAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = GreedyAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = GreedyAgent(playersNameList[3], {'print_info': False})
 
-
 env = gym.make('Hearts_Card_Game-v0')
 env.__init__(playersNameList, max_score)
 
-for _ in range(num_episodes):
-    
+for episode_number in range(num_episodes):
+        
     observation = env.reset()   # return initial observation
-    
-    while True:
+    done = False
+
+    while not done:
+
+        print("=======================ep number:", episode_number)
 
         # render environment and initialise score and action
         env.render()        
@@ -79,7 +81,7 @@ for _ in range(num_episodes):
         # get and store environment data after making action, then learn and reset observation
         new_observation, reward, done, info = env.step(action)
         for agent in agent_list:
-            if isinstance(agent, RLAgent):
+            if isinstance(agent, RLAgent) and observation['event_name'] != 'GameOver':
                 agent.store_transition(observation, action, reward, new_observation, done)
                 agent.learn()
         observation = new_observation
@@ -90,4 +92,3 @@ for _ in range(num_episodes):
 
         if done:
             print('\nGame Over!!\n')
-            break
