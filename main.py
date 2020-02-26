@@ -14,9 +14,8 @@ agent_list = [0, 0, 0, 0]
 gamma = 0.999
 epsilon = 1
 learning_rate = 0.02
-input_size = [2]
-batch_size = 64
-n_actions = 13
+batch_size = 1
+n_actions = 52
 
 # Human vs Random
 """
@@ -32,29 +31,31 @@ agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
 """
-
+"""
 # Greedy Agent
 agent_list[0] = GreedyAgent(playersNameList[0], {'print_info': False})
 agent_list[1] = GreedyAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = GreedyAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = GreedyAgent(playersNameList[3], {'print_info': False})
-
+"""
 # RL Agent
-"""
-agent_list[0] = RLAgent(playersNameList[0], gamma, epsilon, learning_rate, input_size, batch_size, n_actions)
-agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
-agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
-agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
-"""
+
+agent_list[0] = RLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions)
+agent_list[1] = GreedyAgent(playersNameList[1], {'print_info': False})
+agent_list[2] = GreedyAgent(playersNameList[2], {'print_info': False})
+agent_list[3] = GreedyAgent(playersNameList[3], {'print_info': False})
 
 env = gym.make('Hearts_Card_Game-v0')
 env.__init__(playersNameList, max_score)
 
-for _ in range(num_episodes):
-    
+for episode_number in range(num_episodes):
+        
     observation = env.reset()   # return initial observation
-    
-    while True:
+    done = False
+
+    while not done:
+
+        print("=======================ep number:", episode_number)
 
         # render environment and initialise score and action
         env.render()        
@@ -77,7 +78,13 @@ for _ in range(num_episodes):
                     else:
                         action = agent.perform_action(observation)
 
-        observation, reward, done, info = env.step(action)
+        # get and store environment data after making action, then learn and reset observation
+        new_observation, reward, done, info = env.step(action)
+        for agent in agent_list:
+            if isinstance(agent, RLAgent) and observation['event_name'] != 'GameOver':
+                agent.store_transition(observation, action, reward, new_observation, done)
+                agent.learn()
+        observation = new_observation
 
         if reward:
             print('\nreward: {0}\n'.format(reward))
@@ -85,4 +92,3 @@ for _ in range(num_episodes):
 
         if done:
             print('\nGame Over!!\n')
-            break
