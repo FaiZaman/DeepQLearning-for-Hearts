@@ -1,4 +1,5 @@
 import gym
+from matplotlib import pyplot as plt
 
 from Hearts import *
 from Agents.humanAgent import HumanAgent
@@ -14,8 +15,9 @@ agent_list = [0, 0, 0, 0]
 gamma = 0.999
 epsilon = 1
 learning_rate = 0.02
-batch_size = 1
+batch_size = 64
 n_actions = 52
+score_list = []
 
 # Human vs Random
 """
@@ -52,6 +54,7 @@ for episode_number in range(num_episodes):
         
     observation = env.reset()   # return initial observation
     done = False
+    score = 0
 
     while not done:
 
@@ -61,7 +64,6 @@ for episode_number in range(num_episodes):
         env.render()        
         is_broadcast = observation['broadcast']
         action = None
-        score = 0
 
         # let other players know of state if state is public, otherwise if action then only player performing knows
         if is_broadcast:
@@ -91,4 +93,15 @@ for episode_number in range(num_episodes):
             score += reward['Agent']
 
         if done:
+            score_list.append(score)
             print('\nGame Over!!\n')
+
+
+print(score_list)
+
+# plot the results
+plt.plot(score_list)
+plt.title('Rewards over episodes')
+plt.xlabel('Episode number')
+plt.ylabel('Reward')
+plt.show()
