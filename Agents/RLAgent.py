@@ -123,6 +123,7 @@ class RLAgent(object):
                     print(actions)
                     action = T.argmax(actions[0]).item()               # choose action with greatest value
                 
+                action = self.convert_number_to_action(action)
                 print(action)
                 card_chosen = hand[action]
                 self.action_space = [i for i in range(52)]
@@ -306,42 +307,18 @@ class RLAgent(object):
 
     def convert_action_to_number(self, action_state_dict):
 
-        action = 0
+        index = 0
         if action_state_dict:
 
+            print(action_state_dict)
             card = action_state_dict['data']['action']['card']
-            action = self.action_number_dict[card]
+            index = self.action_number_dict[card]
         
+        return index
+
+    
+    def convert_number_to_action(self, number):
+
+        print(self.number_action_dict)
+        action = self.number_action_dict[number]
         return action
-
-        '''
-        card = action_state_dict['data']['action']['card']
-        card_value = card[0]
-        card_suit = card[1]
-
-        if card_value == "T":
-            card_value = 10
-        elif card_value == "J":
-            card_value = 11
-        elif card_value == "Q":
-            card_value = 12
-        elif card_value == "K":
-            card_value = 13
-        elif card_value == "A":
-            card_value = 14
-
-        card_value = int(card_value)
-        action = 0
-
-        # encode clubs, diamonds, hearts, spades
-        # encoding agent's hand
-        if card_suit == 'c':    # clubs
-            action = (card_value - 2) + 0
-        elif card_suit == 'd':  # diamonds
-            action = (card_value - 2) + 13
-        elif card_suit == 'h':  # hearts
-            action = (card_value - 2) + 26
-        else:                   # spades
-            action = (card_value - 2) + 39
-
-    return action'''

@@ -1,5 +1,5 @@
 
-class Dictionary(object):
+class Dictionary():
 
     def __init__(self, is_card):
         
