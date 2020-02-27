@@ -2,6 +2,7 @@ import torch as T
 import random as rand
 import numpy as np
 from Network import DeepQNetwork
+from Dictionaries import Dictionary
 
 class RLAgent(object):
 
@@ -29,6 +30,9 @@ class RLAgent(object):
         self.reward_memory = np.zeros(self.memory_size)
         self.terminal_memory = np.zeros(self.memory_size, dtype=np.uint8)   # sequence of done flags
 
+        self.action_number_dict = Dictionary(is_card=True)    # for converting actions to a tensor number
+        self.number_action_dict = Dictionary(is_card=False)    # for converting a number back to an action
+
 
     # function for storing memories
     def store_transition(self, current_state, action, reward, next_state, terminal):
@@ -45,7 +49,7 @@ class RLAgent(object):
             action = None
             for player_card in current_state['data']['currentTrick']:
                 if player_card['playerName'] == "Agent":
-                    action = self.convert_action(convertable_action)
+                    action = self.convert_action_to_number(convertable_action)
                     break
         else:
             action = None
@@ -116,8 +120,10 @@ class RLAgent(object):
                     print("not random action chosen")
                     data_tensor = self.convert_state_to_tensor(observation)
                     actions = self.Network.forward(data_tensor)      # get action list from neural network
-                    action = T.argmax(actions).item()               # choose action with greatest value
+                    print(actions)
+                    action = T.argmax(actions[0]).item()               # choose action with greatest value
                 
+                print(action)
                 card_chosen = hand[action]
                 self.action_space = [i for i in range(52)]
 
@@ -162,7 +168,9 @@ class RLAgent(object):
             # update the Q-values using the equation Q(s, a) = r(s, a) + gamma*max(Q(s', a))
             batch_index = np.arange(self.batch_size, dtype=np.int32)
             print(q_target[batch_index][action_indices].size(), T.max(q_next, dim=1)[0].size())
-            q_target[batch_index][action_indices] = reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
+            #max_q_next = T.max(q_next, dim=2)[0]
+            #max_q_next = max_q_next.view(2, 2, 32)
+            #q_target[batch_index][action_indices] = reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
 
             # update epsilon for epsilon greedy
             if self.epsilon > self.epsilon_min:
@@ -296,37 +304,44 @@ class RLAgent(object):
             return tensor
 
 
-    def convert_action(self, action_dict):
+    def convert_action_to_number(self, action_state_dict):
 
-        if action_dict:
+        action = 0
+        if action_state_dict:
 
-            card = action_dict['data']['action']['card']
-            card_value = card[0]
-            card_suit = card[1]
-
-            if card_value == "T":
-                card_value = 10
-            elif card_value == "J":
-                card_value = 11
-            elif card_value == "Q":
-                card_value = 12
-            elif card_value == "K":
-                card_value = 13
-            elif card_value == "A":
-                card_value = 14
-
-            card_value = int(card_value)
-            action = 0
-
-            # encode clubs, diamonds, hearts, spades
-            # encoding agent's hand
-            if card_suit == 'c':    # clubs
-                action = (card_value - 2) + 0
-            elif card_suit == 'd':  # diamonds
-                action = (card_value - 2) + 13
-            elif card_suit == 'h':  # hearts
-                action = (card_value - 2) + 26
-            else:                   # spades
-                action = (card_value - 2) + 39
-
+            card = action_state_dict['data']['action']['card']
+            action = self.action_number_dict[card]
+        
         return action
+
+        '''
+        card = action_state_dict['data']['action']['card']
+        card_value = card[0]
+        card_suit = card[1]
+
+        if card_value == "T":
+            card_value = 10
+        elif card_value == "J":
+            card_value = 11
+        elif card_value == "Q":
+            card_value = 12
+        elif card_value == "K":
+            card_value = 13
+        elif card_value == "A":
+            card_value = 14
+
+        card_value = int(card_value)
+        action = 0
+
+        # encode clubs, diamonds, hearts, spades
+        # encoding agent's hand
+        if card_suit == 'c':    # clubs
+            action = (card_value - 2) + 0
+        elif card_suit == 'd':  # diamonds
+            action = (card_value - 2) + 13
+        elif card_suit == 'h':  # hearts
+            action = (card_value - 2) + 26
+        else:                   # spades
+            action = (card_value - 2) + 39
+
+    return action'''

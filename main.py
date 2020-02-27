@@ -26,9 +26,9 @@ agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
 """
-# Random play
+# Greedy vs Random play
 """
-agent_list[0] = RandomAgent(playersNameList[0], {'print_info': False})
+agent_list[0] = Greedy(playersNameList[0], {'print_info': False})
 agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
