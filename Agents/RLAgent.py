@@ -30,8 +30,11 @@ class RLAgent(object):
         self.reward_memory = np.zeros(self.memory_size)
         self.terminal_memory = np.zeros(self.memory_size, dtype=np.uint8)   # sequence of done flags
 
-        self.action_number_dict = Dictionary(is_card=True)    # for converting actions to a tensor number
-        self.number_action_dict = Dictionary(is_card=False)    # for converting a number back to an action
+        self.action_number_dict = Dictionary()    # for converting actions to a tensor number
+        self.action_number_dict.choose_dict(is_card=True)
+
+        self.number_action_dict = Dictionary()    # for converting a number back to an action
+        self.number_action_dict.choose_dict(is_card=False)
 
 
     # function for storing memories
@@ -116,16 +119,17 @@ class RLAgent(object):
                 if rand.random() < self.epsilon:
                     print("random action taken")
                     action = np.random.choice(self.action_space)
+                    card_chosen = hand[action]
                 else:
                     print("not random action chosen")
                     data_tensor = self.convert_state_to_tensor(observation)
                     actions = self.Network.forward(data_tensor)      # get action list from neural network
-                    print(actions)
                     action = T.argmax(actions[0]).item()               # choose action with greatest value
                 
-                action = self.convert_number_to_action(action)
-                print(action)
-                card_chosen = hand[action]
+                    action = self.convert_number_to_action(action)
+                    if action in hand:
+                        card_chosen = action
+                
                 self.action_space = [i for i in range(52)]
 
             return {
@@ -310,15 +314,14 @@ class RLAgent(object):
         index = 0
         if action_state_dict:
 
-            print(action_state_dict)
             card = action_state_dict['data']['action']['card']
-            index = self.action_number_dict[card]
+            index = self.action_number_dict.dict_object[card]
         
         return index
 
     
     def convert_number_to_action(self, number):
 
-        print(self.number_action_dict)
-        action = self.number_action_dict[number]
+        print(self.number_action_dict.dict_object)
+        action = self.number_action_dict.dict_object[number]
         return action
