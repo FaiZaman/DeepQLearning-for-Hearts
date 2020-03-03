@@ -173,9 +173,11 @@ class RLAgent(object):
             # update the Q-values using the equation Q(s, a) = r(s, a) + gamma*max(Q(s', a))
             batch_index = np.arange(self.batch_size, dtype=np.int32)
             print(q_target[batch_index][action_indices].size(), T.max(q_next, dim=1)[0].size())
-            #max_q_next = T.max(q_next, dim=2)[0]
-            #max_q_next = max_q_next.view(2, 2, 32)
-            #q_target[batch_index][action_indices] = reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
+            print(reward_batch.size())
+            print(action_indices)
+            print(q_target[:,action_indices].size())
+            #torch.gather(x, 1, ids.unsqueeze(1))
+            q_target[:, action_indices] = reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
 
             # update epsilon for epsilon greedy
             if self.epsilon > self.epsilon_min:

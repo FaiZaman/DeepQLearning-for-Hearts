@@ -15,9 +15,9 @@ agent_list = [0, 0, 0, 0]
 gamma = 0.999
 epsilon = 1
 learning_rate = 0.02
-batch_size = 1
+batch_size = 64
 n_actions = 52
-score_list = []
+score_list = [[], [], [], []]
 
 # Human vs Random
 """
@@ -54,7 +54,7 @@ for episode_number in range(num_episodes):
         
     observation = env.reset()   # return initial observation
     done = False
-    score = 0
+    scores = [0, 0, 0, 0]
 
     while not done:
 
@@ -90,18 +90,28 @@ for episode_number in range(num_episodes):
 
         if reward:
             print('\nreward: {0}\n'.format(reward))
-            score += reward['Agent']
+            scores[0] += reward['Agent']
+            scores[1] += reward['Boris']
+            scores[2] += reward['Calum']
+            scores[3] += reward['Diego']
 
         if done:
-            score_list.append(score)
+            for i in range(0, len(score_list)):
+                score_list[i].append(scores[i])
             print('\nGame Over!!\n')
 
 
+# plot the results
 print(score_list)
 
-# plot the results
-plt.plot(score_list)
+plt.plot(score_list[0], label="Agent")
+
+for i in range(1, len(score_list)):
+    plt.plot(score_list[i], label="Greedy " + str(i))
+
 plt.title('Rewards over episodes')
 plt.xlabel('Episode number')
 plt.ylabel('Reward')
+plt.legend(loc="upper right")
+
 plt.show()
