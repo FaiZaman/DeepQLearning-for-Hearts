@@ -5,6 +5,7 @@ from Hearts import *
 from Agents.humanAgent import HumanAgent
 from Agents.randomAgent import RandomAgent
 from Agents.greedyAgent import GreedyAgent
+from Agents.PerfectedGreedyAgent import PerfectedGreedyAgent
 from Agents.RLAgent import RLAgent
 
 num_episodes = 10
@@ -15,7 +16,7 @@ agent_list = [0, 0, 0, 0]
 gamma = 0.999
 epsilon = 1
 learning_rate = 0.02
-batch_size = 64
+batch_size = 1
 n_actions = 52
 score_list = [[], [], [], []]
 
@@ -35,7 +36,7 @@ agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
 """
 """
 # Greedy Agent
-agent_list[0] = GreedyAgent(playersNameList[0], {'print_info': False})
+agent_list[0] = PerfectedGreedyAgent(playersNameList[0], {'print_info': False})
 agent_list[1] = GreedyAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = GreedyAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = GreedyAgent(playersNameList[3], {'print_info': False})
@@ -43,7 +44,7 @@ agent_list[3] = GreedyAgent(playersNameList[3], {'print_info': False})
 # RL Agent
 
 agent_list[0] = RLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions)
-agent_list[1] = GreedyAgent(playersNameList[1], {'print_info': False})
+agent_list[1] = PerfectedGreedyAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = GreedyAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = GreedyAgent(playersNameList[3], {'print_info': False})
 
@@ -104,12 +105,13 @@ for episode_number in range(num_episodes):
 # plot the results
 print(score_list)
 
+plt.ylim(-120, 20)
 plt.plot(score_list[0], label="Agent")
 
 for i in range(1, len(score_list)):
     plt.plot(score_list[i], label="Greedy " + str(i))
 
-plt.title('Rewards over episodes')
+plt.title('Scores over episodes')
 plt.xlabel('Episode number')
 plt.ylabel('Reward')
 plt.legend(loc="upper right")

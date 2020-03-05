@@ -15,7 +15,6 @@ Done this - hits error on line 87 for infinite loop - needs fixing
 
 - Currently equation bug is fixed by using batch size = 1 instead of 64. Obviously a temp solution so
 we need to find the real one.
-- Matrix size mismatch bug needs fixing too; may be harder
 
 # Network inputs
 
@@ -33,7 +32,3 @@ moves are illegal
 # Rewards
 
 Add rewards in between hands, not just at the end of a hand
-
-# Plotting
-
-Plot the score graphs
