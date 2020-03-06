@@ -26,7 +26,6 @@ class DeepQNetwork(nn.Module):
 
     
     def forward(self, observation):
-        print(observation.shape)
 
         # get state and run ReLu activation function
         state = T.Tensor(observation).to(self.device).reshape(-1, 2*52)

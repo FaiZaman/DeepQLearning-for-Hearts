@@ -32,3 +32,11 @@ moves are illegal
 # Rewards
 
 Add rewards in between hands, not just at the end of a hand
+
+# This week
+
+Researched Double Deep Q-Learning, changed objectives, found benchmarks for objective parameters
+Finished Introduction and 1/2 of related work in final paper
+Made progress on error in implementation, meeting tomorrow to fix it
+Displayed results properly on one graph with 4 lines
+Implemented improved greedy agent; needs testing
