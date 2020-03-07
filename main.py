@@ -1,9 +1,11 @@
 import gym
+from matplotlib import pyplot as plt
 
 from Hearts import *
 from Agents.humanAgent import HumanAgent
 from Agents.randomAgent import RandomAgent
 from Agents.greedyAgent import GreedyAgent
+from Agents.PerfectedGreedyAgent import PerfectedGreedyAgent
 from Agents.RLAgent import RLAgent
 
 num_episodes = 10
@@ -13,9 +15,10 @@ playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
 agent_list = [0, 0, 0, 0]
 gamma = 0.999
 epsilon = 1
-learning_rate = 0.02
-batch_size = 1
+learning_rate = 0.001
+batch_size = 64
 n_actions = 52
+score_list = [[], [], [], []]
 
 # Human vs Random
 """
@@ -24,16 +27,16 @@ agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
 """
-# Random play
+# Greedy vs Random play
 """
-agent_list[0] = RandomAgent(playersNameList[0], {'print_info': False})
+agent_list[0] = Greedy(playersNameList[0], {'print_info': False})
 agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
 """
 """
 # Greedy Agent
-agent_list[0] = GreedyAgent(playersNameList[0], {'print_info': False})
+agent_list[0] = PerfectedGreedyAgent(playersNameList[0], {'print_info': False})
 agent_list[1] = GreedyAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = GreedyAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = GreedyAgent(playersNameList[3], {'print_info': False})
@@ -52,6 +55,7 @@ for episode_number in range(num_episodes):
         
     observation = env.reset()   # return initial observation
     done = False
+    scores = [0, 0, 0, 0]
 
     while not done:
 
@@ -61,7 +65,6 @@ for episode_number in range(num_episodes):
         env.render()        
         is_broadcast = observation['broadcast']
         action = None
-        score = 0
 
         # let other players know of state if state is public, otherwise if action then only player performing knows
         if is_broadcast:
@@ -88,7 +91,29 @@ for episode_number in range(num_episodes):
 
         if reward:
             print('\nreward: {0}\n'.format(reward))
-            score += reward['Agent']
+            scores[0] += reward['Agent']
+            scores[1] += reward['Boris']
+            scores[2] += reward['Calum']
+            scores[3] += reward['Diego']
 
         if done:
+            for i in range(0, len(score_list)):
+                score_list[i].append(scores[i])
             print('\nGame Over!!\n')
+
+
+# plot the results
+print(score_list)
+
+plt.ylim(-120, 20)
+plt.plot(score_list[0], label="Agent")
+
+for i in range(1, len(score_list)):
+    plt.plot(score_list[i], label="Greedy " + str(i))
+
+plt.title('Scores over episodes')
+plt.xlabel('Episode number')
+plt.ylabel('Reward')
+plt.legend(loc="upper right")
+
+plt.show()

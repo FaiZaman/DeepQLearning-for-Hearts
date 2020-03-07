@@ -13,7 +13,7 @@ class DeepQNetwork(nn.Module):
         self.n_actions = n_actions
 
         # connect layers
-        self.input_hidden_connected_layer = nn.Linear(52, 256)    # input = [2, 52]
+        self.input_hidden_connected_layer = nn.Linear(2 * 52, 256)    # input = [2, 52]
         self.hidden_output_connected_layer = nn.Linear(256, self.n_actions)
 
         # optimise the network
@@ -28,7 +28,7 @@ class DeepQNetwork(nn.Module):
     def forward(self, observation):
 
         # get state and run ReLu activation function
-        state = T.Tensor(observation).to(self.device)
+        state = T.Tensor(observation).to(self.device).reshape(-1, 2*52)
         x = F.relu(self.input_hidden_connected_layer(state))
 
         # get and return action

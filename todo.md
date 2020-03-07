@@ -11,6 +11,11 @@ Modify the action space so that it only contains the values that the agent can l
 at the specific state - size 13 still, but keep some as -1 or 0 to determine which ones are usable
 Done this - hits error on line 87 for infinite loop - needs fixing
 
+# Bug fixing
+
+- Currently equation bug is fixed by using batch size = 1 instead of 64. Obviously a temp solution so
+we need to find the real one.
+
 # Network inputs
 
 Experiment with different inputs, eg [52, 13] or [1, 52] etc
@@ -27,3 +32,11 @@ moves are illegal
 # Rewards
 
 Add rewards in between hands, not just at the end of a hand
+
+# This week
+
+Researched Double Deep Q-Learning, changed objectives, found benchmarks for objective parameters
+Finished Introduction and 1/2 of related work in final paper
+Made progress on error in implementation, meeting tomorrow to fix it
+Displayed results properly on one graph with 4 lines
+Implemented improved greedy agent; needs testing
