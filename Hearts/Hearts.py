@@ -62,8 +62,8 @@ class HeartsEnv(Env):
         heart_num = 0
         queen_spades = False
         for current_player_i in range(len(self.players)):
-            if players[current_player_i].wonCurrentTrick:
-                for card in self.players[current_player_i].CardsInRound:
+            if self.players[current_player_i].wonCurrentTrick:
+                for card in self.currentTrick.trick:
                     if card.suit == Suit(hearts):
                         heart_num += 1
                     elif card == Card(queen, spades):
@@ -76,7 +76,7 @@ class HeartsEnv(Env):
                     self.shootingMoon = True
                     break;
                 else:
-                    temp_score_list[current_player_i] = heart_num + queen_spades*13
+                    rewards[current_player_i] = heart_num + queen_spades*13
                 break;
         
         for current_player_i in range(len(self.players)):
@@ -325,7 +325,7 @@ class HeartsEnv(Env):
     def _event_PlayTrick(self):
 
         for current_player_i in range(len(self.players)):
-            self.players[current_player_i].trickWon = False
+            self.players[current_player_i].wonCurrentTrick = False
                 
         shift = self.event_data_for_server['shift']
         if self.trickNum == 0 and shift == 0:
@@ -449,10 +449,10 @@ class HeartsEnv(Env):
         else:
             self.event = 'ShowTrickEnd'
         
+
     def _event_ShowTrickEnd(self):
         
         self._evaluateTrick()
-        rewards = self._handleScoring()
         
         cards = []
         for card in self.currentTrick.trick:
@@ -474,16 +474,18 @@ class HeartsEnv(Env):
         self.renderInfo['Msg'] += 'Winner: {0}\n'.format(self.players[self.trickWinner].name)
         self.renderInfo['Msg'] += 'cards: {0}\n'.format(cards)
         self.renderInfo['Msg'] += 'IsHeartsBroken: {0}\n'.format(self.heartsBroken)
-        
-        self.currentTrick = Trick()
-             
+                     
         self.trickNum += 1
         if self.trickNum < 13:
             self.event = 'PlayTrick'
             self.event_data_for_server = {'shift': 0, 'IsHeartsBroken': self.heartsBroken}
+            rewards = self._handleScoring(event='ShowTrickEnd')
         else:
             self.event = 'RoundEnd'
             self.event_data_for_server = {}
+            rewards = self._handleScoring(event='RoundEnd')
+
+        self.currentTrick = Trick()
 
         return rewards
 

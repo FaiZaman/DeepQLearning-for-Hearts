@@ -41,7 +41,6 @@ class RLAgent(object):
     def store_transition(self, current_state, action, reward, next_state, terminal):
 
         index = self.memory_counter % self.memory_size    # find position in memory
-        print(reward)
 
         # convert state to tensor
         current_state_tensor = self.convert_state_to_tensor(current_state)
@@ -70,7 +69,7 @@ class RLAgent(object):
 
         # setting memory    
         if reward:
-            self.reward_memory[index] = reward['Agent']
+            self.reward_memory[index] = reward[0]
         self.terminal_memory[index] = 1 - terminal
 
         next_state_tensor = self.convert_state_to_tensor(next_state)

@@ -91,15 +91,12 @@ for episode_number in range(num_episodes):
 
         if reward:
             print('\nreward: {0}\n'.format(reward))
-            scores[0] += reward['Agent']
-            scores[1] += reward['Boris']
-            scores[2] += reward['Calum']
-            scores[3] += reward['Diego']
-
+            for r in range(0, 4):
+                scores[r] -= reward[r]
         if done:
             for i in range(0, len(score_list)):
                 score_list[i].append(scores[i])
-            print('\nGame Over!!\n')
+            print('\nGame Over!\n')
 
 
 # plot the results

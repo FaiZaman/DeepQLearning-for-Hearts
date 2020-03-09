@@ -31,3 +31,4 @@ Replay buffer with minibatches of experiences to sample and learn from
 
 Fixed errors and now agent runs properly with equation
 Related work in progress
+Changed rewards to give them every trick rather than end of every round
