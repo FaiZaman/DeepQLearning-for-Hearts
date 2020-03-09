@@ -41,6 +41,7 @@ class RLAgent(object):
     def store_transition(self, current_state, action, reward, next_state, terminal):
 
         index = self.memory_counter % self.memory_size    # find position in memory
+        print(reward)
 
         # convert state to tensor
         current_state_tensor = self.convert_state_to_tensor(current_state)
