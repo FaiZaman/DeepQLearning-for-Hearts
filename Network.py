@@ -19,7 +19,7 @@ class DeepQNetwork(nn.Module):
 
         # optimise the network
         self.optimiser = optim.Adam(self.parameters(), lr=learning_rate)
-        self.loss = nn.MSELoss()    # mean square error loss function
+        self.loss = nn.SmoothL1Loss()    # Huber loss function
 
         # perform actions on the GPU
         self.device = T.device('cuda:0' if T.cuda.is_available() else 'cuda:1')

@@ -117,11 +117,11 @@ class RLAgent(object):
 
                 # epsilon greedy policy
                 if rand.random() < self.epsilon:
-                    print("random action taken")
+                    #print("random action taken")
                     action = np.random.choice(self.action_space)
                     card_chosen = hand[action]
                 else:
-                    print("not random action chosen")
+                    #print("not random action chosen")
                     data_tensor = self.convert_state_to_tensor(observation)
                     actions = self.Network.forward(data_tensor)      # get action list from neural network
                     actions = self.filter_output_actions(hand, actions)

@@ -8,7 +8,7 @@ from Agents.greedyAgent import GreedyAgent
 from Agents.PerfectedGreedyAgent import PerfectedGreedyAgent
 from Agents.RLAgent import RLAgent
 
-num_episodes = 10
+num_episodes = 1000
 max_score = 100
 
 playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
@@ -56,10 +56,9 @@ for episode_number in range(num_episodes):
     observation = env.reset()   # return initial observation
     done = False
     scores = [0, 0, 0, 0]
+    print("=======================ep number:", episode_number)
 
     while not done:
-
-        print("=======================ep number:", episode_number)
 
         # render environment and initialise score and action
         env.render()        
@@ -90,7 +89,7 @@ for episode_number in range(num_episodes):
         observation = new_observation
 
         if reward:
-            print('\nreward: {0}\n'.format(reward))
+            #print('\nreward: {0}\n'.format(reward))
             for r in range(0, 4):
                 scores[r] -= reward[r]
         if done:
@@ -98,15 +97,27 @@ for episode_number in range(num_episodes):
                 score_list[i].append(scores[i])
             print('\nGame Over!\n')
 
+    
+plottable_score_list = [[], [], [], []]
+
+plot_range = int(num_episodes / 10)
+print(plot_range)
+
+for player in range(0, 4):
+    for i in range(1, num_episodes + 1):
+        if i % plot_range == 0:
+            average_over_past_range = sum(score_list[player][i - plot_range:i])/plot_range
+            plottable_score_list[player].append(average_over_past_range)
+
+print(plottable_score_list)
 
 # plot the results
-print(score_list)
-
+#plt.xlim(0, num_episodes)
 plt.ylim(-120, 20)
-plt.plot(score_list[0], label="Agent")
+plt.plot([x for x in range(1, num_episodes + 1) if x % plot_range == 0], plottable_score_list[0], label="Agent")
 
-for i in range(1, len(score_list)):
-    plt.plot(score_list[i], label="Greedy " + str(i))
+for i in range(1, len(plottable_score_list)):
+    plt.plot([x for x in range(1, num_episodes + 1) if x % plot_range == 0], plottable_score_list[i], label="Greedy " + str(i))
 
 plt.title('Scores over episodes')
 plt.xlabel('Episode number')
