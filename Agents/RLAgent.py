@@ -36,10 +36,13 @@ class RLAgent(object):
         self.number_action_dict = Dictionary()    # for converting a number back to an action
         self.number_action_dict.choose_dict(is_card=False)
 
+        self.last_action = None  # for keeping track until reward is reached
+
 
     # function for storing memories
     def store_transition(self, current_state, action, reward, next_state, terminal):
-
+        
+        #if self.last_action and reward:
         index = self.memory_counter % self.memory_size    # find position in memory
 
         # convert state to tensor
@@ -47,13 +50,12 @@ class RLAgent(object):
         self.state_memory[index] = current_state_tensor
 
         # convert action to int
-        if current_state['event_name'] == 'ShowTrickAction' and action:
+        if current_state['event_name'] == 'PlayTrick':
             convertable_action = action
             action = None
-            for player_card in current_state['data']['currentTrick']:
-                if player_card['playerName'] == "Agent":
-                    action = self.convert_action_to_number(convertable_action)
-                    break
+            if current_state['data']['playerName'] == "Agent":
+                action = self.convert_action_to_number(convertable_action)
+                self.last_action = action
         else:
             action = None
 
@@ -64,7 +66,7 @@ class RLAgent(object):
         
         if action:
             actions[action] = 1
-
+        
         self.action_memory[index] = actions
 
         # setting memory    
@@ -126,10 +128,7 @@ class RLAgent(object):
                     actions = self.Network.forward(data_tensor)      # get action list from neural network
                     actions = self.filter_output_actions(hand, actions)
                     action = T.argmax(actions).item()               # choose action with greatest value
-                    #print(actions)
-                    #print(actions[0][action].item())
                     card_chosen = self.convert_number_to_action(action)
-                    #print(hand, card)
                 
                 self.action_space = [i for i in range(52)]
 
@@ -144,7 +143,7 @@ class RLAgent(object):
     
     def learn(self):
 
-        if self.memory_counter < self.batch_size:   # improves correlation
+        if self.memory_counter < self.batch_size:  # improves correlation by only learning with enough memories
             
             # reset grad and set maximum memory
             self.Network.optimiser.zero_grad()
@@ -175,7 +174,7 @@ class RLAgent(object):
             batch_index = np.arange(self.batch_size, dtype=np.int32)
             action_indices = T.Tensor(action_indices).long().to(self.Network.device)
             #T.gather(q_target, 1, action_indices.unsqueeze(1))
-            q_target[:, action_indices] = reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
+            q_target[batch_index, action_indices] = reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
 
             # update epsilon for epsilon greedy
             if self.epsilon > self.epsilon_min:

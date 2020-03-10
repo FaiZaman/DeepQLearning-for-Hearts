@@ -99,9 +99,7 @@ for episode_number in range(num_episodes):
 
     
 plottable_score_list = [[], [], [], []]
-
 plot_range = int(num_episodes / 10)
-print(plot_range)
 
 for player in range(0, 4):
     for i in range(1, num_episodes + 1):
@@ -109,10 +107,7 @@ for player in range(0, 4):
             average_over_past_range = sum(score_list[player][i - plot_range:i])/plot_range
             plottable_score_list[player].append(average_over_past_range)
 
-print(plottable_score_list)
-
 # plot the results
-#plt.xlim(0, num_episodes)
 plt.ylim(-120, 20)
 plt.plot([x for x in range(1, num_episodes + 1) if x % plot_range == 0], plottable_score_list[0], label="Agent")
 
