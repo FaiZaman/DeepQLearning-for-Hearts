@@ -8,7 +8,7 @@ from Agents.greedyAgent import GreedyAgent
 from Agents.PerfectedGreedyAgent import PerfectedGreedyAgent
 from Agents.RLAgent import RLAgent
 
-num_episodes = 1000
+num_episodes = 100
 max_score = 100
 
 playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
@@ -83,9 +83,31 @@ for episode_number in range(num_episodes):
         # get and store environment data after making action, then learn and reset observation
         new_observation, reward, done, info = env.step(action)
         for agent in agent_list:
-            if isinstance(agent, RLAgent) and observation['event_name'] != 'GameOver':
-                agent.store_transition(observation, action, reward, new_observation, done)
-                agent.learn()
+            if isinstance(agent, RLAgent):
+                if observation['event_name'] != 'GameOver':
+
+                    if observation['event_name'] == 'PlayTrick' and observation['data']['playerName'] == "Agent":
+                        
+                        # store current state and action to be used in experience replay
+                        agent.last_current_state = observation
+                        agent.last_action = action
+
+                    elif new_observation['event_name'] == 'ShowTrickEnd':
+
+                        # store reward and commence storing the transition
+                        stored_current_state = agent.last_current_state
+                        stored_action = agent.last_action
+                        stored_reward = reward
+                        stored_next_state = new_observation
+
+                        agent.store_transition(stored_current_state, stored_action, stored_reward, stored_next_state, done)
+                        agent.learn()
+                    
+                    else:
+                        break;
+            else:
+                break;
+
         observation = new_observation
 
         if reward:

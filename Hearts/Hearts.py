@@ -612,6 +612,5 @@ class HeartsEnv(Env):
             self.event_data_for_client = None
             done = True
 
-
         observation = self.event_data_for_client
         return observation, reward, done, info

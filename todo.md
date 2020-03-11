@@ -20,6 +20,7 @@ Choose a better loss function
 
 Check that rewards correspond to the correct specific actions
 (if not, make it so that each action eg [0001000] corresponds to specific reward at whichever state)
+Change the rewards being given to ShowTrickEnd so everything can finally be stored properly
 
 # Plotting
 
@@ -32,6 +33,6 @@ Replay buffer with minibatches of experiences to sample and learn from
 # This week
 
 Fixed errors and now agent runs properly with equation
-Related work in progress
+Related work finished
 Changed rewards to give them every trick rather than end of every round
 Plotted average scores over a range rather than every single point and made it dynamic

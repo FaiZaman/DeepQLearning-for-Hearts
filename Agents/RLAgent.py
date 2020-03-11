@@ -36,13 +36,15 @@ class RLAgent(object):
         self.number_action_dict = Dictionary()    # for converting a number back to an action
         self.number_action_dict.choose_dict(is_card=False)
 
-        self.last_action = None  # for keeping track until reward is reached
+        # for keeping track until reward is reached
+        self.last_current_state = None  
+        self.last_action = None  
+        self.last_next_state = None
 
 
     # function for storing memories
     def store_transition(self, current_state, action, reward, next_state, terminal):
         
-        #if self.last_action and reward:
         index = self.memory_counter % self.memory_size    # find position in memory
 
         # convert state to tensor
