@@ -39,7 +39,6 @@ class RLAgent(object):
         # for keeping track until reward is reached
         self.last_current_state = None  
         self.last_action = None  
-        self.last_next_state = None
 
 
     # function for storing memories
@@ -49,17 +48,10 @@ class RLAgent(object):
 
         # convert state to tensor
         current_state_tensor = self.convert_state_to_tensor(current_state)
-        self.state_memory[index] = current_state_tensor
+        next_state_tensor = self.convert_state_to_tensor(next_state)
 
         # convert action to int
-        if current_state['event_name'] == 'PlayTrick':
-            convertable_action = action
-            action = None
-            if current_state['data']['playerName'] == "Agent":
-                action = self.convert_action_to_number(convertable_action)
-                self.last_action = action
-        else:
-            action = None
+        action = self.convert_action_to_number(action)
 
         # one hot encoding
         actions = np.zeros(self.n_actions)
@@ -69,16 +61,13 @@ class RLAgent(object):
         if action:
             actions[action] = 1
         
+        # add to memories and increment counter
+        self.state_memory[index] = current_state_tensor
         self.action_memory[index] = actions
-
-        # setting memory    
-        if reward:
-            self.reward_memory[index] = reward[0]
+        self.reward_memory[index] = reward[0]
+        self.new_state_memory[index] = next_state_tensor
         self.terminal_memory[index] = 1 - terminal
 
-        next_state_tensor = self.convert_state_to_tensor(next_state)
-        self.new_state_memory[index] = next_state_tensor
-        
         self.memory_counter += 1
 
     
@@ -154,15 +143,15 @@ class RLAgent(object):
             else:
                 max_memory = self.memory_size
 
-            # get batch memories
+            # get a batch of experiences from replay memory
             batch = np.random.choice(max_memory, self.batch_size)
             state_batch = self.state_memory[batch]
             action_batch = self.action_memory[batch]
             action_values = np.array(self.action_space, dtype=np.uint8)
             action_indices = np.dot(action_batch, action_values)
             reward_batch = self.reward_memory[batch]
-            terminal_batch = self.terminal_memory[batch]
             new_state_batch = self.new_state_memory[batch]
+            terminal_batch = self.terminal_memory[batch]
 
             reward_batch = T.Tensor(reward_batch).to(self.Network.device)
             terminal_batch = T.Tensor(terminal_batch).to(self.Network.device)
@@ -333,5 +322,5 @@ class RLAgent(object):
         for number in range(0, len(actions[0])):
             action = self.convert_number_to_action(number)
             if action not in hand:
-                actions[0][number] = 100
+                actions[0][number] = 1000000
         return actions

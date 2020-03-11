@@ -551,7 +551,7 @@ class HeartsEnv(Env):
                 }
             }
 
-        self.renderInfo['printFlag'] = True
+        self.renderInfo['printFlag'] = False
         self.renderInfo['Msg'] = '\n*** Game Over ***\n'
         for p in self.players:
             self.renderInfo['Msg'] += '{0}: {1}\n'.format(p.name, p.score)

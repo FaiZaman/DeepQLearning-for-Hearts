@@ -16,12 +16,6 @@ Tune the rewards, learning rate, gamma, and epsilon
 Research an approporiate architecture for the neural network
 Choose a better loss function   
 
-# Rewards + actions
-
-Check that rewards correspond to the correct specific actions
-(if not, make it so that each action eg [0001000] corresponds to specific reward at whichever state)
-Change the rewards being given to ShowTrickEnd so everything can finally be stored properly
-
 # Plotting
 
 Perhaps plot the average score per hand rather than per game
@@ -36,3 +30,5 @@ Fixed errors and now agent runs properly with equation
 Related work finished
 Changed rewards to give them every trick rather than end of every round
 Plotted average scores over a range rather than every single point and made it dynamic
+Stored transitions better with each state, action, reward, next state corresponding properly
+who's second marker?
