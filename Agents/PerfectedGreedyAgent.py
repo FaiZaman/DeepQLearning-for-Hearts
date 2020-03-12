@@ -75,7 +75,9 @@ class PerfectedGreedyAgent():
                 "event_name": "PlayTrick_Action",
                 "data": {
                     'playerName': self.name,
-                    'action': {'card': card}
+                    'action': {
+                        'card': card,
+                    }
                 }
             }
     

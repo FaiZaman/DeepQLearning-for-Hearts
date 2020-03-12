@@ -75,7 +75,9 @@ class GreedyAgent():
                 "event_name": "PlayTrick_Action",
                 "data": {
                     'playerName': self.name,
-                    'action': {'card': smallest_card}
+                    'action': {
+                        'card': smallest_card,
+                    }
                 }
             }
     

@@ -8,7 +8,7 @@ from Agents.greedyAgent import GreedyAgent
 from Agents.PerfectedGreedyAgent import PerfectedGreedyAgent
 from Agents.RLAgent import RLAgent
 
-num_episodes = 1000
+num_episodes = 10
 max_score = 100
 
 playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
@@ -56,7 +56,7 @@ for episode_number in range(num_episodes):
     observation = env.reset()   # return initial observation
     done = False
     scores = [0, 0, 0, 0]
-    if episode_number % 100 == 0:
+    if episode_number % 1 == 0:
         print("=======================ep number:", episode_number)
 
     while not done:
@@ -78,6 +78,8 @@ for episode_number in range(num_episodes):
                 if agent.name == playerName:
                     if isinstance(agent, RLAgent):
                         action = agent.choose_action(observation)
+                        #if action:
+                          #  invalid_action = action['data']['action']
                     else:
                         action = agent.perform_action(observation)
 
@@ -94,6 +96,13 @@ for episode_number in range(num_episodes):
                         agent.last_action = action
 
                     elif new_observation['event_name'] == 'ShowTrickEnd':
+
+                        # if action was invalid give large negative reward with no state change
+                        '''if invalid_action:
+                            reward = [50, 0, 0, 0]
+                            stored_next_state = agent.last_current_state
+                        else:
+                            stored_next_state = new_observation'''
 
                         # store reward and commence storing the transition
                         stored_current_state = agent.last_current_state
@@ -120,7 +129,7 @@ for episode_number in range(num_episodes):
                 score_list[i].append(scores[i])
             #print('\nGame Over!\n')
 
-    
+print(score_list)
 plottable_score_list = [[], [], [], []]
 plot_range = int(num_episodes / 10)
 

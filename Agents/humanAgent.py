@@ -46,7 +46,9 @@ class HumanAgent:
                     "event_name" : "PlayTrick_Action",
                     "data" : {
                         'playerName': self.name,
-                        'action': {'card': choose_card}
+                        'action': {
+                            'card': choose_card,
+                        }
                     }
                 }
         elif event == 'ShowTrickAction':
