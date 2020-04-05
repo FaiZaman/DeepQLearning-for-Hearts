@@ -3,7 +3,6 @@ from datetime import datetime
 
 class RandomAgent:
 
-
     def __init__(self, name, params = None):
         random.seed(datetime.now())
         self.name = name
@@ -46,7 +45,6 @@ class RandomAgent:
                 print(observation)
 
         elif event == 'PlayTrick':
-            print("===========", observation, "==========")
             if self.print_info:
                 print("===========", observation, "==========")
 

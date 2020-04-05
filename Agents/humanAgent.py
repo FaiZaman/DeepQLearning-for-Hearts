@@ -14,13 +14,17 @@ class HumanAgent:
 
         if event == 'GameStart':
             print(observation)
+
         elif event == 'NewRound':
             print(observation)
+
         elif event == 'PassCards':
-            print(observation)
+            
+            hand = observation['data']['hand']
+            print(hand)
             passCards = []
             for i in range(3):
-                passCards.append(input('{0} pass card{1}: '.format(self.name, i+1)))
+                passCards.append(input('Pass Card {0}: '.format(i+1)))
             
             print('passCards: ', passCards)
             return {
@@ -32,11 +36,13 @@ class HumanAgent:
                 }
         
         elif event == 'ShowPlayerHand':
-            print(observation)
+
+            print("New Hand:", observation['data']['hand'])
         
         elif event == 'PlayTrick':
-            print(observation)
+
             hand = observation['data']['hand']
+            print(hand)
             if '2c' in hand:
                 choose_card = '2c'
             else:
@@ -52,10 +58,13 @@ class HumanAgent:
                     }
                 }
         elif event == 'ShowTrickAction':
-            print(observation)
+            print("Current Trick:", observation['data']['currentTrick'])
+
         elif event == 'ShowTrickEnd':
             print(observation)
+
         elif event == 'RoundEnd':
             print(observation)
+
         elif event == 'GameOver':
-            print(observation)            
+            print(observation)

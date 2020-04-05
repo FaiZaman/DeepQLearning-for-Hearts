@@ -15,32 +15,27 @@ playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
 agent_list = [0, 0, 0, 0]
 gamma = 0.999
 epsilon = 1
-learning_rate = 0.0001
+learning_rate = 0.001
 batch_size = 64
 n_actions = 52
 score_list = [[], [], [], []]
 
 # Human vs Random
 """
-agent_list[0] = HumanAgent(playersNameList[0], {})
+agent_list[0] = RLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions)
+agent_list[1] = HumanAgent(playersNameList[1], {'print_info': False})
+agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
+agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
+"""
+
+# RL vs Random play
+"""
+agent_list[0] = RLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions)
 agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
 """
-# Greedy vs Random play
-"""
-agent_list[0] = Greedy(playersNameList[0], {'print_info': False})
-agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
-agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
-agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
-"""
-"""
-# Greedy Agent
-agent_list[0] = PerfectedGreedyAgent(playersNameList[0], {'print_info': False})
-agent_list[1] = GreedyAgent(playersNameList[1], {'print_info': False})
-agent_list[2] = GreedyAgent(playersNameList[2], {'print_info': False})
-agent_list[3] = GreedyAgent(playersNameList[3], {'print_info': False})
-"""
+
 # RL Agent
 
 agent_list[0] = RLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions)
@@ -66,10 +61,11 @@ for episode_number in range(num_episodes):
         is_broadcast = observation['broadcast']
         action = None
 
-        # let other players know of state if state is public, otherwise if action then only player performing knows
+        # let other players know of state if state is public
+        # otherwise if action then only player performing knows
         if is_broadcast:
             for agent in agent_list:
-                if isinstance(agent, RandomAgent) or isinstance(agent, GreedyAgent) or isinstance(agent, HumanAgent):
+                if not isinstance(agent, RLAgent):
                     agent.perform_action(observation)
 
         else:
@@ -78,31 +74,31 @@ for episode_number in range(num_episodes):
                 if agent.name == playerName:
                     if isinstance(agent, RLAgent):
                         action = agent.choose_action(observation)
-                        #if action:
-                          #  invalid_action = action['data']['action']
                     else:
                         action = agent.perform_action(observation)
 
         # get and store environment data after making action, then learn and reset observation
         new_observation, reward, done, info = env.step(action)
+        
         for agent in agent_list:
             if isinstance(agent, RLAgent):
                 if observation['event_name'] != 'GameOver':
-
-                    if observation['event_name'] == 'PlayTrick' and observation['data']['playerName'] == "Agent":
+                    if observation['event_name'] == 'PlayTrick' \
+                        and observation['data']['playerName'] == "Agent":
                         
                         # store current state and action to be used in experience replay
                         agent.last_current_state = observation
                         agent.last_action = action
 
                     elif new_observation['event_name'] == 'ShowTrickEnd':
-
+                        
+                        print(agent.num_of_invalid_actions)
                         # if action was invalid give large negative reward with no state change
-                        '''if invalid_action:
-                            reward = [50, 0, 0, 0]
+                        if agent.num_of_invalid_actions > 0:
+                            reward = [30, 0, 0, 0]
                             stored_next_state = agent.last_current_state
                         else:
-                            stored_next_state = new_observation'''
+                            stored_next_state = new_observation
 
                         # store reward and commence storing the transition
                         stored_current_state = agent.last_current_state
@@ -110,7 +106,8 @@ for episode_number in range(num_episodes):
                         stored_reward = reward
                         stored_next_state = new_observation
 
-                        agent.store_transition(stored_current_state, stored_action, stored_reward, stored_next_state, done)
+                        agent.store_transition(stored_current_state, stored_action, \
+                                                stored_reward, stored_next_state, done)
                         agent.learn()
                     
                     else:
@@ -118,7 +115,11 @@ for episode_number in range(num_episodes):
             else:
                 break;
 
-        observation = new_observation
+        for agent in agent_list:
+            if isinstance(agent, RLAgent):
+                if agent.num_of_invalid_actions == 0:
+                    observation = new_observation
+                    break;
 
         if reward:
             #print('\nreward: {0}\n'.format(reward))
@@ -141,10 +142,12 @@ for player in range(0, 4):
 
 # plot the results
 plt.ylim(-120, 20)
-plt.plot([x for x in range(1, num_episodes + 1) if x % plot_range == 0], plottable_score_list[0], label="Agent")
+plt.plot([x for x in range(1, num_episodes + 1) if x % plot_range == 0],\
+        plottable_score_list[0], label="Agent")
 
 for i in range(1, len(plottable_score_list)):
-    plt.plot([x for x in range(1, num_episodes + 1) if x % plot_range == 0], plottable_score_list[i], label="Greedy " + str(i))
+    plt.plot([x for x in range(1, num_episodes + 1) if x % plot_range == 0],\
+        plottable_score_list[i], label="Greedy " + str(i))
 
 plt.title('Scores over episodes')
 plt.xlabel('Episode number')
