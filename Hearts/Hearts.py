@@ -2,6 +2,7 @@ from .Deck import Deck
 from .Card import Card, Suit, Rank
 from .Player import Player
 from .Trick import Trick
+from Dictionaries import Dictionary
 
 from gym import Env
 
@@ -83,6 +84,28 @@ class HeartsEnv(Env):
             self.players[current_player_i].score += rewards[current_player_i]
         
         return rewards
+
+
+    # converts a card string to object
+    def convert_str_to_card(self, card_string):
+
+        card_rank = card_string[0]
+        card_suit = card_string[1]
+
+        try:
+            card_rank = int(card_rank)
+        except ValueError:
+            rank_number_dict = Dictionary()
+            rank_number_dict.choose_dict(dict_type="rank_number")
+            card_rank = rank_number_dict.dict_object[card_rank]
+
+        suit_dict = Dictionary()
+        suit_dict.choose_dict(dict_type="suit")
+        card_suit = suit_dict.dict_object[card_suit]
+
+        card = Card(card_rank, card_suit)
+
+        return card
     
 
     @classmethod
@@ -370,13 +393,18 @@ class HeartsEnv(Env):
                 self._event_PlayTrick()
         else:
             
+            card = action_data['data']['action']['card']
             addCard = current_player.play(action_data['data']['action']['card'])
-            if addCard is not None:
+
+            copyAddCard = self.convert_str_to_card(card)
+            #print("checking", action_data, current_player.name, copyAddCard, addCard)
+
+            if addCard is not None or current_player.name == "Agent":
                 # if it is not the first trick and no cards have been played,
                 # set the first card played as the trick suit if it is not a heart
                 # or if hearts have been broken
                 if self.trickNum != 0 and self.currentTrick.cardsInTrick == 0:
-                    if addCard.suit == Suit(hearts) and not self.heartsBroken:
+                    if copyAddCard.suit == Suit(hearts) and not self.heartsBroken:
                         # if player only has hearts but hearts have not been broken,
                         # player can play hearts
                         if not current_player.hasOnlyHearts():
@@ -388,7 +416,7 @@ class HeartsEnv(Env):
                             self.currentTrick.setTrickSuit(addCard)
                             self.heartsBroken = True
                     else:
-                        self.currentTrick.setTrickSuit(addCard)
+                        self.currentTrick.setTrickSuit(copyAddCard)
 
                 # player tries to play off suit but has trick suit
                 if addCard is not None and addCard.suit != self.currentTrick.suit:
@@ -414,19 +442,28 @@ class HeartsEnv(Env):
                         addCard = None
 
                 if addCard is not None:
-                    current_player.removeCard(addCard)
-                    self.currentTrick.addCard(addCard, current_player_i)
+                    current_player.removeCard(copyAddCard)
+                    self.currentTrick.addCard(copyAddCard, current_player_i)
                     self.event_data_for_server['shift'] += 1
                     self.event = 'ShowTrickAction'
                     self._event_ShowTrickAction()
+                
+                elif current_player.name == "Agent":
+                    self.currentTrick.addCard(copyAddCard, current_player_i)
+                    self.event_data_for_server['shift'] += 1
+                    self.event = 'ShowTrickAction'
+                    self._event_ShowTrickAction()
+
                 else:
+                    print("resetting", action_data, current_player.name, self.event_data_for_server['shift'])
                     self.event = 'PlayTrick'
                     self._event_PlayTrick()
             
             else:
+                #print("resetting2", action_data, current_player.name)
                 self.event = 'PlayTrick'
                 self._event_PlayTrick()
-            
+                
 
     def _event_ShowTrickAction(self):
 

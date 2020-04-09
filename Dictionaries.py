@@ -6,12 +6,18 @@ class Dictionary():
         self.dict_object = {}
 
 
-    def choose_dict(self, is_card):
+    def choose_dict(self, dict_type):
 
-        if is_card:
+        if dict_type == "action":
             self.create_action_dict()
-        else:
+        elif dict_type == "number":
             self.create_number_dict()
+        elif dict_type == "number_rank":
+            self.create_number_rank_dict()
+        elif dict_type == "rank_number":
+            self.create_rank_number_dict()
+        else:
+            self.create_suit_dict()
 
     
     # creates a dictionary of form '2c': 0
@@ -139,3 +145,29 @@ class Dictionary():
         self.dict_object[49] = 'Qs'
         self.dict_object[50] = 'Ks'
         self.dict_object[51] = 'As'
+
+
+    def create_number_rank_dict(self):
+
+        self.dict_object[10] = 'T'
+        self.dict_object[11] = 'J'
+        self.dict_object[12] = 'Q'
+        self.dict_object[13] = 'K'
+        self.dict_object[14] = 'A'
+
+
+    def create_rank_number_dict(self):
+
+        self.dict_object['T'] = 10
+        self.dict_object['J'] = 11
+        self.dict_object['Q'] = 12
+        self.dict_object['K'] = 13
+        self.dict_object['A'] = 14
+
+
+    def create_suit_dict(self):
+
+        self.dict_object['c'] = 0
+        self.dict_object['d'] = 1
+        self.dict_object['s'] = 2
+        self.dict_object['h'] = 3

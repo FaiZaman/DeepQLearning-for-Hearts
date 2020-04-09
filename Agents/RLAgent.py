@@ -34,10 +34,10 @@ class RLAgent(object):
         self.terminal_memory = np.zeros(self.memory_size, dtype=np.uint8)   # sequence of done flags
 
         self.action_number_dict = Dictionary()    # for converting actions to a tensor number
-        self.action_number_dict.choose_dict(is_card=True)
+        self.action_number_dict.choose_dict(dict_type="action")
 
         self.number_action_dict = Dictionary()    # for converting a number back to an action
-        self.number_action_dict.choose_dict(is_card=False)
+        self.number_action_dict.choose_dict(dict_type="number")
 
         # for keeping track until reward is reached
         self.last_current_state = None
@@ -152,6 +152,7 @@ class RLAgent(object):
                         card_chosen = self.convert_number_to_action(action)
                         self.num_of_invalid_actions = 0
 
+            #print("rl", self.num_of_invalid_actions)
             return {
                 "event_name": "PlayTrick_Action",
                 "data": {

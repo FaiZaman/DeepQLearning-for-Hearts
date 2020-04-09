@@ -8,7 +8,7 @@ from Agents.greedyAgent import GreedyAgent
 from Agents.PerfectedGreedyAgent import PerfectedGreedyAgent
 from Agents.RLAgent import RLAgent
 
-num_episodes = 10
+num_episodes = 100
 max_score = 100
 
 playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
@@ -83,16 +83,21 @@ for episode_number in range(num_episodes):
         for agent in agent_list:
             if isinstance(agent, RLAgent):
                 if observation['event_name'] != 'GameOver':
-                    if observation['event_name'] == 'PlayTrick' \
-                        and observation['data']['playerName'] == "Agent":
-                        
-                        # store current state and action to be used in experience replay
-                        agent.last_current_state = observation
-                        agent.last_action = action
 
-                    elif new_observation['event_name'] == 'ShowTrickEnd':
+                    if observation['event_name'] == 'PlayTrick':
+                        if observation['data']['currentTrick'] == []:
+
+                            # store current state to be used in experience replay
+                            agent.last_current_state = new_observation
                         
-                        print(agent.num_of_invalid_actions)
+                        if observation['data']['playerName'] == "Agent":
+                            
+                            # store action to be used in experience replay
+                            agent.last_action = action
+
+                    if new_observation['event_name'] == 'ShowTrickEnd':
+                        
+                        #print("showtrickend", agent.num_of_invalid_actions)
                         # if action was invalid give large negative reward with no state change
                         if agent.num_of_invalid_actions > 0:
                             reward = [30, 0, 0, 0]
@@ -117,7 +122,13 @@ for episode_number in range(num_episodes):
 
         for agent in agent_list:
             if isinstance(agent, RLAgent):
-                if agent.num_of_invalid_actions == 0:
+                if observation['event_name'] == 'ShowTrickEnd':
+                    if agent.num_of_invalid_actions == 0:
+                        observation = new_observation
+                        break;
+                    else:
+                        observation = agent.last_current_state
+                else:
                     observation = new_observation
                     break;
 
@@ -141,7 +152,7 @@ for player in range(0, 4):
             plottable_score_list[player].append(average_over_past_range)
 
 # plot the results
-plt.ylim(-120, 20)
+#plt.ylim(-120, 20)
 plt.plot([x for x in range(1, num_episodes + 1) if x % plot_range == 0],\
         plottable_score_list[0], label="Agent")
 
