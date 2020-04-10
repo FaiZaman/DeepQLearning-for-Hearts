@@ -40,8 +40,9 @@ class RLAgent(object):
         self.number_action_dict.choose_dict(dict_type="number")
 
         # for keeping track until reward is reached
-        self.last_current_state = None
+        self.stored_state = None
         self.last_action = None
+        self.safe_state = None
 
         # for dealing with invalid actions
         self.num_of_invalid_actions = 0
@@ -98,6 +99,7 @@ class RLAgent(object):
         
         elif event == 'PlayTrick':
 
+
             if '2c' in hand:
                 card_chosen = '2c'
                 self.num_of_invalid_actions = 0
@@ -106,6 +108,7 @@ class RLAgent(object):
                 trick_suit = observation['data']['trickSuit']
                 trick_number = observation['data']['trickNum']
                 hearts_broken = observation['data']['IsHeartsBroken']
+                print("Agent", hand, self.num_of_invalid_actions, trick_number)
                 playable_hand = self.get_real_hand(hand, trick_suit, trick_number, hearts_broken)
                 playable_action_space = []
 
@@ -150,9 +153,7 @@ class RLAgent(object):
                         actions = self.filter_output_actions(hand, actions)
                         action = T.argmax(actions).item()
                         card_chosen = self.convert_number_to_action(action)
-                        self.num_of_invalid_actions = 0
 
-            #print("rl", self.num_of_invalid_actions)
             return {
                 "event_name": "PlayTrick_Action",
                 "data": {

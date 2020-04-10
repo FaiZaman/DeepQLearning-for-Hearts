@@ -57,6 +57,7 @@ class GreedyAgent():
                 hearts_broken = observation['data']['IsHeartsBroken']
                 trick_suit = observation['data']['trickSuit']
                 trick_number = observation['data']['trickNum']
+
                 if trick_suit == "Unset":
                     if hearts_broken and trick_number > 1:
                         # agent plays first card of any suit since hearts is broken
@@ -144,7 +145,6 @@ class GreedyAgent():
     def remove_illegal_cards(self, hand, trick_suit, trick_number, hearts_broken):
 
         legal_present = self.is_legal_present(hand, trick_suit)
-        print("yo", hand, legal_present, trick_suit, trick_number, hearts_broken)
 
         if legal_present:
             legal_hand = []

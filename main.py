@@ -79,6 +79,7 @@ for episode_number in range(num_episodes):
 
         # get and store environment data after making action, then learn and reset observation
         new_observation, reward, done, info = env.step(action)
+        print(observation['event_name'], new_observation['event_name'])
         
         for agent in agent_list:
             if isinstance(agent, RLAgent):
@@ -88,32 +89,39 @@ for episode_number in range(num_episodes):
                         if observation['data']['currentTrick'] == []:
 
                             # store current state to be used in experience replay
-                            agent.last_current_state = new_observation
+                            if agent.num_of_invalid_actions == 0:
+                                agent.safe_state = observation
+                                print("safe state replaced")
+                                print(agent.safe_state)
                         
                         if observation['data']['playerName'] == "Agent":
                             
                             # store action to be used in experience replay
+                            agent.stored_state = observation
                             agent.last_action = action
 
                     if new_observation['event_name'] == 'ShowTrickEnd':
                         
-                        #print("showtrickend", agent.num_of_invalid_actions)
                         # if action was invalid give large negative reward with no state change
                         if agent.num_of_invalid_actions > 0:
+                            print("=========================================")
                             reward = [30, 0, 0, 0]
-                            stored_next_state = agent.last_current_state
+                            stored_next_state = agent.safe_state
                         else:
                             stored_next_state = new_observation
 
+                        new_observation['data']['trickNum'] = observation['data']['trickNum']
                         # store reward and commence storing the transition
-                        stored_current_state = agent.last_current_state
+                        stored_current_state = agent.stored_state
                         stored_action = agent.last_action
                         stored_reward = reward
-                        stored_next_state = new_observation
 
                         agent.store_transition(stored_current_state, stored_action, \
                                                 stored_reward, stored_next_state, done)
                         agent.learn()
+
+                        if agent.num_of_invalid_actions >= agent.invalid_action_buffer:
+                            agent.num_of_invalid_actions = 0
                     
                     else:
                         break;
@@ -124,12 +132,22 @@ for episode_number in range(num_episodes):
             if isinstance(agent, RLAgent):
                 if observation['event_name'] == 'ShowTrickEnd':
                     if agent.num_of_invalid_actions == 0:
+                        print("no invalid", observation['data']['trickNum'], new_observation['event_name'])
                         observation = new_observation
                         break;
                     else:
-                        observation = agent.last_current_state
+                        print("very invalid")
+                        observation = agent.safe_state
+                        print(observation)
                 else:
-                    observation = new_observation
+                    if observation['event_name'] == 'PlayTrick' and new_observation['event_name'] == 'PlayTrick' or\
+                       observation['event_name'] == 'PlayTrick' and new_observation['event_name'] == 'ShowTrickAction' or\
+                       observation['event_name'] == 'ShowTrickAction' and new_observation['event_name'] == 'PlayTrick':
+                        trick_number = observation['data']['trickNum']
+                        observation = new_observation
+                        observation['data']['trickNum'] = trick_number
+                    else:
+                        observation = new_observation
                     break;
 
         if reward:
