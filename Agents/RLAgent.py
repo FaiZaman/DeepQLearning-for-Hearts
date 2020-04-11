@@ -39,6 +39,7 @@ class RLAgent(object):
         # for keeping track until reward is reached
         self.last_current_state = None  
         self.last_action = None  
+        self.learn_step = 0
 
 
     # function for storing memories
@@ -106,23 +107,20 @@ class RLAgent(object):
                         if legal_card == card:
                             playable_action_space.append(hand.index(card))      
 
-                self.action_space = playable_action_space
-
                 # epsilon greedy policy
                 if rand.random() < self.epsilon:
-                    #print("random action taken")
-                    action = np.random.choice(self.action_space)
-                    card_chosen = hand[action]
+                    card_chosen = np.random.choice(playable_hand)
                 else:
-                    #print("not random action chosen")
                     data_tensor = self.convert_state_to_tensor(observation)
-                    actions = self.Network.forward(data_tensor)      # get action list from neural network
-                    actions = self.filter_output_actions(hand, actions)
-                    action = T.argmax(actions).item()               # choose action with greatest value
+
+                    # get action list from neural network
+                    number_actions = self.Network.forward(data_tensor)
+                    actions = self.filter_output_actions(playable_hand, number_actions)
+                    
+                    # choose action with greatest value
+                    action = T.argmax(actions).item()               
                     card_chosen = self.convert_number_to_action(action)
                 
-                self.action_space = [i for i in range(52)]
-
             return {
                 "event_name": "PlayTrick_Action",
                 "data": {
@@ -134,7 +132,7 @@ class RLAgent(object):
     
     def learn(self):
 
-        if self.memory_counter < self.batch_size:  # improves correlation by only learning with enough memories
+        if self.memory_counter > self.batch_size:  # improves correlation by only learning with enough memories
             
             # reset grad and set maximum memory
             self.Network.optimiser.zero_grad()
@@ -164,7 +162,6 @@ class RLAgent(object):
             # update the Q-values using the equation Q(s, a) = r(s, a) + gamma*max(Q(s', a))
             batch_index = np.arange(self.batch_size, dtype=np.int32)
             action_indices = T.Tensor(action_indices).long().to(self.Network.device)
-            #T.gather(q_target, 1, action_indices.unsqueeze(1))
             q_target[batch_index, action_indices] = reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
 
             # update epsilon for epsilon greedy
@@ -322,5 +319,5 @@ class RLAgent(object):
         for number in range(0, len(actions[0])):
             action = self.convert_number_to_action(number)
             if action not in hand:
-                actions[0][number] = 1000000
+                actions[0][number] = -100
         return actions

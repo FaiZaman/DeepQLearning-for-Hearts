@@ -8,7 +8,7 @@ from Agents.greedyAgent import GreedyAgent
 from Agents.PerfectedGreedyAgent import PerfectedGreedyAgent
 from Agents.RLAgent import RLAgent
 
-num_episodes = 1000
+num_episodes = 100
 max_score = 100
 
 playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
@@ -56,7 +56,7 @@ for episode_number in range(num_episodes):
     observation = env.reset()   # return initial observation
     done = False
     scores = [0, 0, 0, 0]
-    if episode_number % 100 == 0:
+    if episode_number % 1 == 0:
         print("=======================ep number:", episode_number)
 
     while not done:
@@ -83,6 +83,7 @@ for episode_number in range(num_episodes):
 
         # get and store environment data after making action, then learn and reset observation
         new_observation, reward, done, info = env.step(action)
+
         for agent in agent_list:
             if isinstance(agent, RLAgent):
                 if observation['event_name'] != 'GameOver':
@@ -102,8 +103,12 @@ for episode_number in range(num_episodes):
                         stored_next_state = new_observation
 
                         agent.store_transition(stored_current_state, stored_action, stored_reward, stored_next_state, done)
-                        agent.learn()
-                    
+                        
+                        # agent learns every 4 steps
+                        if agent.learn_step % 4 == 0:
+                            agent.learn()
+                        agent.learn_step += 1
+
                     else:
                         break;
             else:
@@ -131,7 +136,7 @@ for player in range(0, 4):
             plottable_score_list[player].append(average_over_past_range)
 
 # plot the results
-plt.ylim(-120, 20)
+plt.ylim(-120, 0)
 plt.plot([x for x in range(1, num_episodes + 1) if x % plot_range == 0], plottable_score_list[0], label="Agent")
 
 for i in range(1, len(plottable_score_list)):
