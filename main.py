@@ -8,14 +8,14 @@ from Agents.greedyAgent import GreedyAgent
 from Agents.PerfectedGreedyAgent import PerfectedGreedyAgent
 from Agents.RLAgent import RLAgent
 
-num_episodes = 10
+num_episodes = 1000
 max_score = 100
 
 playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
 agent_list = [0, 0, 0, 0]
 gamma = 0.999
 epsilon = 1
-learning_rate = 0.001
+learning_rate = 0.0001
 batch_size = 64
 n_actions = 52
 score_list = [[], [], [], []]
@@ -56,10 +56,10 @@ for episode_number in range(num_episodes):
     observation = env.reset()   # return initial observation
     done = False
     scores = [0, 0, 0, 0]
+    if episode_number % 100 == 0:
+        print("=======================ep number:", episode_number)
 
     while not done:
-
-        print("=======================ep number:", episode_number)
 
         # render environment and initialise score and action
         env.render()        
@@ -84,32 +84,58 @@ for episode_number in range(num_episodes):
         # get and store environment data after making action, then learn and reset observation
         new_observation, reward, done, info = env.step(action)
         for agent in agent_list:
-            if isinstance(agent, RLAgent) and observation['event_name'] != 'GameOver':
-                agent.store_transition(observation, action, reward, new_observation, done)
-                agent.learn()
+            if isinstance(agent, RLAgent):
+                if observation['event_name'] != 'GameOver':
+
+                    if observation['event_name'] == 'PlayTrick' and observation['data']['playerName'] == "Agent":
+                        
+                        # store current state and action to be used in experience replay
+                        agent.last_current_state = observation
+                        agent.last_action = action
+
+                    elif new_observation['event_name'] == 'ShowTrickEnd':
+
+                        # store reward and commence storing the transition
+                        stored_current_state = agent.last_current_state
+                        stored_action = agent.last_action
+                        stored_reward = reward
+                        stored_next_state = new_observation
+
+                        agent.store_transition(stored_current_state, stored_action, stored_reward, stored_next_state, done)
+                        agent.learn()
+                    
+                    else:
+                        break;
+            else:
+                break;
+
         observation = new_observation
 
         if reward:
-            print('\nreward: {0}\n'.format(reward))
-            scores[0] += reward['Agent']
-            scores[1] += reward['Boris']
-            scores[2] += reward['Calum']
-            scores[3] += reward['Diego']
-
+            #print('\nreward: {0}\n'.format(reward))
+            for r in range(0, 4):
+                scores[r] -= reward[r]
         if done:
             for i in range(0, len(score_list)):
                 score_list[i].append(scores[i])
-            print('\nGame Over!!\n')
+            #print('\nGame Over!\n')
 
+    
+plottable_score_list = [[], [], [], []]
+plot_range = int(num_episodes / 10)
+
+for player in range(0, 4):
+    for i in range(1, num_episodes + 1):
+        if i % plot_range == 0:
+            average_over_past_range = sum(score_list[player][i - plot_range:i])/plot_range
+            plottable_score_list[player].append(average_over_past_range)
 
 # plot the results
-print(score_list)
-
 plt.ylim(-120, 20)
-plt.plot(score_list[0], label="Agent")
+plt.plot([x for x in range(1, num_episodes + 1) if x % plot_range == 0], plottable_score_list[0], label="Agent")
 
-for i in range(1, len(score_list)):
-    plt.plot(score_list[i], label="Greedy " + str(i))
+for i in range(1, len(plottable_score_list)):
+    plt.plot([x for x in range(1, num_episodes + 1) if x % plot_range == 0], plottable_score_list[i], label="Greedy " + str(i))
 
 plt.title('Scores over episodes')
 plt.xlabel('Episode number')
