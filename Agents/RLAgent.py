@@ -15,6 +15,7 @@ class RLAgent(object):
         self.epsilon = epsilon
         self.batch_size = batch_size
         self.n_actions = n_actions
+        self.learning_rate = learning_rate
 
         # e_end is the lowest value epsilon will decrease to, e_dec is factor by which epsilon decreases
         self.epsilon_min = epsilon_min              
@@ -172,6 +173,8 @@ class RLAgent(object):
             
             # set loss function (mean squared error), backwards propagation, and optimiser step
             loss = self.Network.loss(q_target, q_predicted).to(self.Network.device)
+            self.loss_list.append(loss.item())
+
             loss.backward()
             self.Network.optimiser.step()
 
@@ -184,13 +187,16 @@ class RLAgent(object):
                 return hand
             else:
                 # agent plays first card of any suit except for hearts
-                no_hearts_hand = self.remove_hearts(hand)
-                return no_hearts_hand
+                legal_hand = self.remove_hearts(hand)
         else:
             # agent plays second/third/fourth card
             # if at least one card of tricksuit in hand, limit to cards of tricksuit
             legal_hand = self.remove_illegal_cards(hand, trick_suit, trick_number, hearts_broken)
-            return legal_hand
+
+        # remove Queen of Spades from hand so not played in first round
+        if trick_number == 1 and 'Qs' in legal_hand:
+            legal_hand.remove('Qs')
+        return legal_hand
             
 
     def remove_hearts(self, hand):

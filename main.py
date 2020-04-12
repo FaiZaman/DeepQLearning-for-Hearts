@@ -8,14 +8,14 @@ from Agents.greedyAgent import GreedyAgent
 from Agents.PerfectedGreedyAgent import PerfectedGreedyAgent
 from Agents.RLAgent import RLAgent
 
-num_episodes = 100
+num_episodes = 10000
 max_score = 100
 
 playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
 agent_list = [0, 0, 0, 0]
 gamma = 0.999
 epsilon = 1
-learning_rate = 0.0001
+learning_rate = 0.000001
 batch_size = 64
 n_actions = 52
 score_list = [[], [], [], []]
@@ -56,7 +56,7 @@ for episode_number in range(num_episodes):
     observation = env.reset()   # return initial observation
     done = False
     scores = [0, 0, 0, 0]
-    if episode_number % 1 == 0:
+    if episode_number % 100 == 0:
         print("=======================ep number:", episode_number)
 
     while not done:
@@ -125,17 +125,13 @@ for episode_number in range(num_episodes):
                 score_list[i].append(scores[i])
             #print('\nGame Over!\n')
 
-    
-plottable_score_list = [[], [], [], []]
-plot_range = int(num_episodes / 10)
 
 for player in range(0, 4):
     for i in range(1, num_episodes + 1):
         if i % plot_range == 0:
-            average_over_past_range = sum(score_list[player][i - plot_range:i])/plot_range
-            plottable_score_list[player].append(average_over_past_range)
+            average_score_range = sum(score_list[player][i - plot_range:i])/plot_range
+            plottable_score_list[player].append(average_score_range)
 
-# plot the results
 plt.ylim(-120, 0)
 plt.plot([x for x in range(1, num_episodes + 1) if x % plot_range == 0], plottable_score_list[0], label="Agent")
 
