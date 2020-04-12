@@ -369,8 +369,10 @@ class HeartsEnv(Env):
                 self.event = 'PlayTrick'
                 self._event_PlayTrick()
         else:
-            
-            addCard = current_player.play(action_data['data']['action']['card'])
+
+            card = action_data['data']['action']['card']
+            addCard = current_player.play(card)
+
             if addCard is not None:
                 # if it is not the first trick and no cards have been played,
                 # set the first card played as the trick suit if it is not a heart
@@ -424,6 +426,7 @@ class HeartsEnv(Env):
                     self._event_PlayTrick()
             
             else:
+                print("resetting1", current_player.name)
                 self.event = 'PlayTrick'
                 self._event_PlayTrick()
             
