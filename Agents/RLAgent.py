@@ -1,4 +1,5 @@
 import torch as T
+import torch.optim as optim
 import random as rand
 import numpy as np
 from Network import DeepQNetwork
@@ -41,6 +42,11 @@ class RLAgent(object):
         self.last_current_state = None  
         self.last_action = None  
         self.learn_step = 0
+
+        # for training
+        self.loss_list = []
+        self.lr_list = []
+        self.lr_scale = 1.0008
 
 
     # function for storing memories
@@ -173,10 +179,18 @@ class RLAgent(object):
             
             # set loss function (mean squared error), backwards propagation, and optimiser step
             loss = self.Network.loss(q_target, q_predicted).to(self.Network.device)
-            self.loss_list.append(loss.item())
-
             loss.backward()
             self.Network.optimiser.step()
+
+            # for plotting to determine optimum learning rate
+            self.loss_list.append(loss.item())
+            self.lr_list.append(self.learning_rate)
+             
+            if self.learning_rate > 1:
+                pass
+            else:
+                self.learning_rate *= self.lr_scale
+                self.Network.optimiser = optim.Adam(self.Network.parameters(), lr=self.learning_rate)
 
 
     def get_real_hand(self, hand, trick_suit, trick_number, hearts_broken):
