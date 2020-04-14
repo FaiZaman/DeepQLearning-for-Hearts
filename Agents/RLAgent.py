@@ -189,8 +189,9 @@ class RLAgent(object):
             if self.learning_rate > 1:
                 pass
             else:
-                self.learning_rate *= self.lr_scale
-                self.Network.optimiser = optim.Adam(self.Network.parameters(), lr=self.learning_rate)
+                pass
+                #self.learning_rate *= self.lr_scale
+                #self.Network.optimiser = optim.Adam(self.Network.parameters(), lr=self.learning_rate)
 
 
     def get_real_hand(self, hand, trick_suit, trick_number, hearts_broken):
