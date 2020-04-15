@@ -150,16 +150,7 @@ class RLAgent(object):
 
             # get a batch of experiences from replay memory
             batch = np.random.choice(max_memory, self.batch_size)
-            state_batch = self.state_memory[batch]
-            action_batch = self.action_memory[batch]
-            action_values = np.array(self.action_space, dtype=np.uint8)
-            action_indices = np.dot(action_batch, action_values)
-            reward_batch = self.reward_memory[batch]
-            new_state_batch = self.new_state_memory[batch]
-            terminal_batch = self.terminal_memory[batch]
-
-            reward_batch = T.Tensor(reward_batch).to(self.Network.device)
-            terminal_batch = T.Tensor(terminal_batch).to(self.Network.device)
+            state_batch, action_indices, reward_batch, new_state_batch, terminal_batch = self.get_batch(batch)
 
             # input: (64, 2, 52)
             q_predicted = self.Network.forward(state_batch).to(self.Network.device)     # (64, 2, 52) outputs
@@ -189,9 +180,26 @@ class RLAgent(object):
             if self.learning_rate > 1:
                 pass
             else:
-                pass
-                #self.learning_rate *= self.lr_scale
-                #self.Network.optimiser = optim.Adam(self.Network.parameters(), lr=self.learning_rate)
+                self.learning_rate *= self.lr_scale
+                self.Network.optimiser = optim.Adam(self.Network.parameters(), lr=self.learning_rate)
+
+
+    def get_batch(self, batch_number):
+
+        state_batch = self.state_memory[batch_number]
+
+        action_batch = self.action_memory[batch_number]
+        action_values = np.array(self.action_space, dtype=np.uint8)
+        action_indices = np.dot(action_batch, action_values)
+
+        reward_batch = self.reward_memory[batch_number]
+        new_state_batch = self.new_state_memory[batch_number]
+        terminal_batch = self.terminal_memory[batch_number]
+
+        reward_batch = T.Tensor(reward_batch).to(self.Network.device)
+        terminal_batch = T.Tensor(terminal_batch).to(self.Network.device)
+
+        return state_batch, action_indices, reward_batch, new_state_batch, terminal_batch
 
 
     def get_real_hand(self, hand, trick_suit, trick_number, hearts_broken):

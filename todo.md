@@ -26,9 +26,10 @@ Replay buffer with minibatches of experiences to sample and learn from
 
 # This week
 
-Fixed errors and now agent runs properly with equation
-Related work finished
-Changed rewards to give them every trick rather than end of every round
-Plotted average scores over a range rather than every single point and made it dynamic
-Stored transitions better with each state, action, reward, next state corresponding properly
-who's second marker?
+Allowing invalid actions takes too long for agent to learn - likely because of large number of changing invalid actions (can discuss attempt in paper)
+Fixed the max/min error when filtering invalid actions
+Limiting the agent's learning to once every 4 steps as in literature - optimisation
+Settled on Huber loss as it is more accurate - show graphs
+Plotted loss against episodes and it decreases - show graphs
+Plotting loss against learning rate to find optimum learning rate
+Refinement: use a copy target network as in DDQN paper to calculate target Q-value, replace every tau steps

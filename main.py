@@ -8,7 +8,7 @@ from Agents.greedyAgent import GreedyAgent
 from Agents.PerfectedGreedyAgent import PerfectedGreedyAgent
 from Agents.RLAgent import RLAgent
 
-num_episodes = 1000
+num_episodes = 500
 max_score = 100
 
 playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
@@ -127,16 +127,15 @@ for episode_number in range(num_episodes):
 
 
 loss_list = agent_list[0].loss_list
-plottable_loss_list = []
-
 lr_list = agent_list[0].lr_list
-plottable_lr_list = []
 
 loss_plot_range = int(len(loss_list) / 10)
 score_plot_range = int(num_episodes / 10)
 
-def plot_loss_episodes(plottable_loss_list):
+def plot_loss_episodes():
     
+    plottable_loss_list = []
+
     for i in range(1, len(loss_list)):
         if i % loss_plot_range == 0:
             average_loss_range = sum(loss_list[i - loss_plot_range:i])/loss_plot_range
@@ -150,7 +149,10 @@ def plot_loss_episodes(plottable_loss_list):
     plt.show()
 
 
-def plot_loss_lr(plottable_loss_list, plottable_lr_list):
+def plot_loss_lr():
+
+    plottable_loss_list = []
+    plottable_lr_list = []
 
     # plotting loss over learning rate
     for i in range(1, len(loss_list)):
@@ -192,5 +194,6 @@ def plot_scores():
 
     plt.show()
 
-plot_loss_episodes(plottable_loss_list)
+plot_loss_episodes()
+plot_loss_lr()
 plot_scores()
