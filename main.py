@@ -13,9 +13,12 @@ max_score = 100
 
 playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
 agent_list = [0, 0, 0, 0]
+
+# hyperparameters
 gamma = 0.999
 epsilon = 1
 learning_rate = 0.00001
+
 batch_size = 64
 n_actions = 52
 score_list = [[], [], [], []]
