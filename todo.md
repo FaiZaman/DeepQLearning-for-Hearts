@@ -5,30 +5,21 @@ If true then choose biggest card, otherwise choose smallest card
 If true choose biggest except for QoS
 Riskier but better overall
 
-# Illegal moves
-
-Possibly allow the agent to play illegal moves, but disqualify it if it does to ensure it learns what
-moves are illegal
-
 # Training/Fine-tuning/Improvement
 
 Tune the rewards, learning rate, gamma, and epsilon
 Research an approporiate architecture for the neural network
-Choose a better loss function   
-
-# Plotting
-
-Perhaps plot the average score per hand rather than per game
-
-# Experience replay
-
-Replay buffer with minibatches of experiences to sample and learn from
 
 # This week
 
-Fixed errors and now agent runs properly with equation
-Related work finished
-Changed rewards to give them every trick rather than end of every round
-Plotted average scores over a range rather than every single point and made it dynamic
-Stored transitions better with each state, action, reward, next state corresponding properly
-who's second marker?
+Allowing invalid actions takes too long for agent to learn - likely because of large number of changing invalid actions (can discuss attempt in paper)
+Fixed the max/min error when filtering invalid actions
+Limiting the agent's learning to once every 4 steps as in literature - optimisation
+Settled on Huber loss as it is more accurate - show graphs
+Plotted loss against episodes and it decreases - show graphs
+Plotting loss against learning rate to find optimum learning rate
+Refinement: use a copy target network as in DDQN paper to calculate target Q-value, replace every tau steps
+
+Paper: Rewrote some parts, removed some references
+Referencing: Does referencing have to be (author, date) form? Matthew said it could be [1], [2], etc
+Related work: Do I describe the improvements to deep Q learning? e.g. double DQL, prioritised exp replay, etc

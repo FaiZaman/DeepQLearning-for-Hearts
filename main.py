@@ -8,14 +8,17 @@ from Agents.greedyAgent import GreedyAgent
 from Agents.PerfectedGreedyAgent import PerfectedGreedyAgent
 from Agents.RLAgent import RLAgent
 
-num_episodes = 10000
+num_episodes = 500
 max_score = 100
 
 playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
 agent_list = [0, 0, 0, 0]
+
+# hyperparameters
 gamma = 0.999
 epsilon = 1
-learning_rate = 0.000001
+learning_rate = 0.00001
+
 batch_size = 64
 n_actions = 52
 score_list = [[], [], [], []]
@@ -126,21 +129,74 @@ for episode_number in range(num_episodes):
             #print('\nGame Over!\n')
 
 
-for player in range(0, 4):
-    for i in range(1, num_episodes + 1):
-        if i % plot_range == 0:
-            average_score_range = sum(score_list[player][i - plot_range:i])/plot_range
-            plottable_score_list[player].append(average_score_range)
+loss_list = agent_list[0].loss_list
+lr_list = agent_list[0].lr_list
 
-plt.ylim(-120, 0)
-plt.plot([x for x in range(1, num_episodes + 1) if x % plot_range == 0], plottable_score_list[0], label="Agent")
+loss_plot_range = int(len(loss_list) / 10)
+score_plot_range = int(num_episodes / 10)
 
-for i in range(1, len(plottable_score_list)):
-    plt.plot([x for x in range(1, num_episodes + 1) if x % plot_range == 0], plottable_score_list[i], label="Greedy " + str(i))
+def plot_loss_episodes():
+    
+    plottable_loss_list = []
 
-plt.title('Scores over episodes')
-plt.xlabel('Episode number')
-plt.ylabel('Reward')
-plt.legend(loc="upper right")
+    for i in range(1, len(loss_list)):
+        if i % loss_plot_range == 0:
+            average_loss_range = sum(loss_list[i - loss_plot_range:i])/loss_plot_range
+            plottable_loss_list.append(average_loss_range)
 
-plt.show()
+    # plotting loss over episodes
+    plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0], plottable_loss_list)
+    plt.title('Loss over episodes')
+    plt.xlabel('Episode number')
+    plt.ylabel('Loss')
+    plt.show()
+
+
+def plot_loss_lr():
+
+    plottable_loss_list = []
+    plottable_lr_list = []
+
+    # plotting loss over learning rate
+    for i in range(1, len(loss_list)):
+        if i % loss_plot_range == 0:
+            average_loss_range = sum(loss_list[i - loss_plot_range:i])/loss_plot_range
+            plottable_loss_list.append(average_loss_range)
+            plottable_lr_list.append(lr_list[i])
+
+    print(len(loss_list), loss_plot_range, plottable_loss_list, plottable_lr_list)
+
+    plt.plot(plottable_lr_list, plottable_loss_list)
+    plt.title('Loss over learning rate')
+    plt.xlabel('Learning rate')
+    plt.ylabel('Loss')
+    plt.show()
+
+
+def plot_scores():
+
+    # plot the results
+    plottable_score_list = [[], [], [], []]
+
+    for player in range(0, 4):
+        for i in range(1, num_episodes + 1):
+            if i % score_plot_range == 0:
+                average_score_range = sum(score_list[player][i - score_plot_range:i])/score_plot_range
+                plottable_score_list[player].append(average_score_range)
+
+    plt.ylim(-120, 0)
+    plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0], plottable_score_list[0], label="Agent")
+
+    for i in range(1, len(plottable_score_list)):
+        plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0], plottable_score_list[i], label="Greedy " + str(i))
+
+    plt.title('Scores over episodes')
+    plt.xlabel('Episode number')
+    plt.ylabel('Reward')
+    plt.legend(loc="upper right")
+
+    plt.show()
+
+plot_loss_episodes()
+plot_loss_lr()
+plot_scores()

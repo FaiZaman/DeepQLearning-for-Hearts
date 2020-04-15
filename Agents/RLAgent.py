@@ -1,4 +1,5 @@
 import torch as T
+import torch.optim as optim
 import random as rand
 import numpy as np
 from Network import DeepQNetwork
@@ -41,6 +42,11 @@ class RLAgent(object):
         self.last_current_state = None  
         self.last_action = None  
         self.learn_step = 0
+
+        # for training
+        self.loss_list = []
+        self.lr_list = []
+        self.lr_scale = 1.0008
 
 
     # function for storing memories
@@ -144,16 +150,7 @@ class RLAgent(object):
 
             # get a batch of experiences from replay memory
             batch = np.random.choice(max_memory, self.batch_size)
-            state_batch = self.state_memory[batch]
-            action_batch = self.action_memory[batch]
-            action_values = np.array(self.action_space, dtype=np.uint8)
-            action_indices = np.dot(action_batch, action_values)
-            reward_batch = self.reward_memory[batch]
-            new_state_batch = self.new_state_memory[batch]
-            terminal_batch = self.terminal_memory[batch]
-
-            reward_batch = T.Tensor(reward_batch).to(self.Network.device)
-            terminal_batch = T.Tensor(terminal_batch).to(self.Network.device)
+            state_batch, action_indices, reward_batch, new_state_batch, terminal_batch = self.get_batch(batch)
 
             # input: (64, 2, 52)
             q_predicted = self.Network.forward(state_batch).to(self.Network.device)     # (64, 2, 52) outputs
@@ -173,10 +170,36 @@ class RLAgent(object):
             
             # set loss function (mean squared error), backwards propagation, and optimiser step
             loss = self.Network.loss(q_target, q_predicted).to(self.Network.device)
-            self.loss_list.append(loss.item())
-
             loss.backward()
             self.Network.optimiser.step()
+
+            # for plotting to determine optimum learning rate
+            self.loss_list.append(loss.item())
+            self.lr_list.append(self.learning_rate)
+             
+            if self.learning_rate > 1:
+                pass
+            else:
+                self.learning_rate *= self.lr_scale
+                self.Network.optimiser = optim.Adam(self.Network.parameters(), lr=self.learning_rate)
+
+
+    def get_batch(self, batch_number):
+
+        state_batch = self.state_memory[batch_number]
+
+        action_batch = self.action_memory[batch_number]
+        action_values = np.array(self.action_space, dtype=np.uint8)
+        action_indices = np.dot(action_batch, action_values)
+
+        reward_batch = self.reward_memory[batch_number]
+        new_state_batch = self.new_state_memory[batch_number]
+        terminal_batch = self.terminal_memory[batch_number]
+
+        reward_batch = T.Tensor(reward_batch).to(self.Network.device)
+        terminal_batch = T.Tensor(terminal_batch).to(self.Network.device)
+
+        return state_batch, action_indices, reward_batch, new_state_batch, terminal_batch
 
 
     def get_real_hand(self, hand, trick_suit, trick_number, hearts_broken):
