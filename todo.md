@@ -20,6 +20,14 @@ Plotted loss against episodes and it decreases - show graphs
 Plotting loss against learning rate to find optimum learning rate
 Refinement: use a copy target network as in DDQN paper to calculate target Q-value, replace every tau steps
 
-Paper: Rewrote some parts, removed some references
-Referencing: Does referencing have to be (author, date) form? Matthew said it could be [1], [2], etc
-Related work: Do I describe the improvements to deep Q learning? e.g. double DQL, prioritised exp replay, etc
+# Paper - Solution
+
+Other agent types
+Q-network and Target network
+Epsilon greedy
+Network Architecture
+Invalid actions
+Training 
+    - loss function and equation from file:///C:/Users/faizz/Downloads/978-1-61499-672-9-1362.pdf
+    - hyperparameter optimisation
+4 step learning - ref https://arxiv.org/pdf/1609.05521.pdf section 5.1

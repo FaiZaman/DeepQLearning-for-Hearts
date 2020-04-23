@@ -8,7 +8,7 @@ from Agents.greedyAgent import GreedyAgent
 from Agents.PerfectedGreedyAgent import PerfectedGreedyAgent
 from Agents.RLAgent import RLAgent
 
-num_episodes = 500
+num_episodes = 1000
 max_score = 100
 
 playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
@@ -197,6 +197,6 @@ def plot_scores():
 
     plt.show()
 
-plot_loss_episodes()
-plot_loss_lr()
+#plot_loss_episodes()
+#plot_loss_lr()
 plot_scores()

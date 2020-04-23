@@ -25,7 +25,13 @@ class RLAgent(object):
         self.memory_size = max_mem_size
         self.memory_counter = 0     # index of how many memories are stored
         self.action_space = [i for i in range(n_actions)]
-        self.Network = DeepQNetwork(learning_rate, n_actions=52)
+
+        # two networks as in recent papers
+        self.Q_network = DeepQNetwork(learning_rate, n_actions=52)
+        self.target_network = DeepQNetwork(learning_rate, n_actions=52)
+        self.tau = 10000    # replace every tau steps
+        self.tau_counter = 0
+
         self.state_memory = np.zeros((self.memory_size, *[2, 52]))
         self.new_state_memory = np.zeros((self.memory_size, *[2, 52]))   # used to overwrite memories as agent acquires them
         self.action_memory = np.zeros((self.memory_size, self.n_actions), dtype=np.uint8)
@@ -46,7 +52,7 @@ class RLAgent(object):
         # for training
         self.loss_list = []
         self.lr_list = []
-        self.lr_scale = 1.0008
+        self.lr_scale = 1.0004
 
 
     # function for storing memories
@@ -72,7 +78,7 @@ class RLAgent(object):
         # add to memories and increment counter
         self.state_memory[index] = current_state_tensor
         self.action_memory[index] = actions
-        self.reward_memory[index] = reward[0]
+        self.reward_memory[index] = -reward[0]
         self.new_state_memory[index] = next_state_tensor
         self.terminal_memory[index] = 1 - terminal
 
@@ -120,8 +126,8 @@ class RLAgent(object):
                 else:
                     data_tensor = self.convert_state_to_tensor(observation)
 
-                    # get action list from neural network
-                    number_actions = self.Network.forward(data_tensor)
+                    # get action list from neural Q_network
+                    number_actions = self.Q_network.forward(data_tensor)
                     actions = self.filter_output_actions(playable_hand, number_actions)
                     
                     # choose action with greatest value
@@ -142,7 +148,7 @@ class RLAgent(object):
         if self.memory_counter > self.batch_size:  # improves correlation by only learning with enough memories
             
             # reset grad and set maximum memory
-            self.Network.optimiser.zero_grad()
+            self.Q_network.optimiser.zero_grad()
             if self.memory_counter < self.memory_size:
                 max_memory = self.memory_counter
             else:
@@ -153,13 +159,13 @@ class RLAgent(object):
             state_batch, action_indices, reward_batch, new_state_batch, terminal_batch = self.get_batch(batch)
 
             # input: (64, 2, 52)
-            q_predicted = self.Network.forward(state_batch).to(self.Network.device)     # (64, 2, 52) outputs
-            q_target = self.Network.forward(state_batch).to(self.Network.device)
-            q_next = self.Network.forward(new_state_batch).to(self.Network.device)
+            q_predicted = self.Q_network.forward(state_batch).to(self.Q_network.device)     # (64, 2, 52) outputs
+            q_target = self.target_network.forward(state_batch).to(self.Q_network.device)
+            q_next = self.Q_network.forward(new_state_batch).to(self.Q_network.device)
 
             # update the Q-values using the equation Q(s, a) = r(s, a) + gamma*max(Q(s', a))
             batch_index = np.arange(self.batch_size, dtype=np.int32)
-            action_indices = T.Tensor(action_indices).long().to(self.Network.device)
+            action_indices = T.Tensor(action_indices).long().to(self.Q_network.device)
             q_target[batch_index, action_indices] = reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
 
             # update epsilon for epsilon greedy
@@ -168,20 +174,24 @@ class RLAgent(object):
             else:
                 self.epsilon = self.epsilon_min
             
-            # set loss function (mean squared error), backwards propagation, and optimiser step
-            loss = self.Network.loss(q_target, q_predicted).to(self.Network.device)
+            # set loss function (huber), backwards propagation, and optimiser step
+            loss = self.Q_network.loss(q_target, q_predicted).to(self.Q_network.device)
             loss.backward()
-            self.Network.optimiser.step()
+            self.Q_network.optimiser.step()
+
+            self.tau_counter += 1
+
+            if self.tau_counter % self.tau == 0:
+                self.target_network.load_state_dict(self.Q_network.state_dict())
 
             # for plotting to determine optimum learning rate
             self.loss_list.append(loss.item())
             self.lr_list.append(self.learning_rate)
-             
-            if self.learning_rate > 1:
-                pass
-            else:
+            '''
+            if self.learning_rate < 1:
                 self.learning_rate *= self.lr_scale
-                self.Network.optimiser = optim.Adam(self.Network.parameters(), lr=self.learning_rate)
+                self.Q_network.optimiser = optim.Adam(self.Q_network.parameters(), lr=self.learning_rate)
+            '''
 
 
     def get_batch(self, batch_number):
@@ -196,8 +206,8 @@ class RLAgent(object):
         new_state_batch = self.new_state_memory[batch_number]
         terminal_batch = self.terminal_memory[batch_number]
 
-        reward_batch = T.Tensor(reward_batch).to(self.Network.device)
-        terminal_batch = T.Tensor(terminal_batch).to(self.Network.device)
+        reward_batch = T.Tensor(reward_batch).to(self.Q_network.device)
+        terminal_batch = T.Tensor(terminal_batch).to(self.Q_network.device)
 
         return state_batch, action_indices, reward_batch, new_state_batch, terminal_batch
 
