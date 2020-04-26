@@ -22,12 +22,7 @@ Refinement: use a copy target network as in DDQN paper to calculate target Q-val
 
 # Paper - Solution
 
-Other agent types
-Q-network and Target network
-Epsilon greedy
 Network Architecture
-Invalid actions
 Training 
     - loss function and equation from file:///C:/Users/faizz/Downloads/978-1-61499-672-9-1362.pdf
     - hyperparameter optimisation
-4 step learning - ref https://arxiv.org/pdf/1609.05521.pdf section 5.1

@@ -14,8 +14,10 @@ class DeepQNetwork(nn.Module):
 
         # connect layers
         self.input_hidden_connected_layer = nn.Linear(2 * 52, 256)    # input = [2, 52]
-        self.hidden_hidden_connected_layer = nn.Linear(256, 416)
-        self.hidden_output_connected_layer = nn.Linear(416, self.n_actions)
+        self.hidden_hidden_connected_layer_1 = nn.Linear(256, 416)
+        self.hidden_hidden_connected_layer_2 = nn.Linear(416, 512)
+        self.hidden_hidden_connected_layer_2 = nn.Linear(416, 512)
+        self.hidden_output_connected_layer = nn.Linear(512, self.n_actions)
 
         # optimise the network
         self.optimiser = optim.Adam(self.parameters(), lr=learning_rate)
@@ -31,7 +33,8 @@ class DeepQNetwork(nn.Module):
         # get state and run ReLu activation function
         state = T.Tensor(observation).to(self.device).reshape(-1, 2*52)
         x = F.relu(self.input_hidden_connected_layer(state))
-        x = F.relu(self.hidden_hidden_connected_layer(x))
+        x = F.relu(self.hidden_hidden_connected_layer_1(x))
+        x = F.relu(self.hidden_hidden_connected_layer_2(x))
 
         # get and return action
         actions = self.hidden_output_connected_layer(x)

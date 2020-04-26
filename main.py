@@ -1,4 +1,5 @@
 import gym
+import time
 from matplotlib import pyplot as plt
 
 from Hearts import *
@@ -8,18 +9,18 @@ from Agents.greedyAgent import GreedyAgent
 from Agents.PerfectedGreedyAgent import PerfectedGreedyAgent
 from Agents.RLAgent import RLAgent
 
-num_episodes = 1000
+num_episodes = 2000
 max_score = 100
 
 playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
 agent_list = [0, 0, 0, 0]
 
 # hyperparameters
-gamma = 0.999
+gamma = 0.99
 epsilon = 1
 learning_rate = 0.00001
 
-batch_size = 64
+batch_size = 32
 n_actions = 52
 score_list = [[], [], [], []]
 
@@ -53,6 +54,8 @@ agent_list[3] = GreedyAgent(playersNameList[3], {'print_info': False})
 
 env = gym.make('Hearts_Card_Game-v0')
 env.__init__(playersNameList, max_score)
+
+start_time = time.time()
 
 for episode_number in range(num_episodes):
         
@@ -138,7 +141,7 @@ score_plot_range = int(num_episodes / 10)
 def plot_loss_episodes():
     
     plottable_loss_list = []
-
+    
     for i in range(1, len(loss_list)):
         if i % loss_plot_range == 0:
             average_loss_range = sum(loss_list[i - loss_plot_range:i])/loss_plot_range
@@ -156,17 +159,17 @@ def plot_loss_lr():
 
     plottable_loss_list = []
     plottable_lr_list = []
-
+    '''
     # plotting loss over learning rate
     for i in range(1, len(loss_list)):
         if i % loss_plot_range == 0:
             average_loss_range = sum(loss_list[i - loss_plot_range:i])/loss_plot_range
             plottable_loss_list.append(average_loss_range)
             plottable_lr_list.append(lr_list[i])
-
+    '''
     print(len(loss_list), loss_plot_range, plottable_loss_list, plottable_lr_list)
 
-    plt.plot(plottable_lr_list, plottable_loss_list)
+    plt.plot(lr_list, loss_list)
     plt.title('Loss over learning rate')
     plt.xlabel('Learning rate')
     plt.ylabel('Loss')
@@ -184,7 +187,7 @@ def plot_scores():
                 average_score_range = sum(score_list[player][i - score_plot_range:i])/score_plot_range
                 plottable_score_list[player].append(average_score_range)
 
-    plt.ylim(-120, 0)
+    plt.ylim(-100, 0)
     plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0], plottable_score_list[0], label="Agent")
 
     for i in range(1, len(plottable_score_list)):
@@ -197,6 +200,9 @@ def plot_scores():
 
     plt.show()
 
-#plot_loss_episodes()
+time_taken = time.time() - start_time
 #plot_loss_lr()
 plot_scores()
+plot_loss_episodes()
+
+print("The program took %s seconds to run %s episodes" % (time_taken, num_episodes))

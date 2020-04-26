@@ -160,7 +160,7 @@ class RLAgent(object):
 
             # input: (64, 2, 52)
             q_predicted = self.Q_network.forward(state_batch).to(self.Q_network.device)     # (64, 2, 52) outputs
-            q_target = self.target_network.forward(state_batch).to(self.Q_network.device)
+            q_target = self.target_network.forward(state_batch).to(self.target_network.device)
             q_next = self.Q_network.forward(new_state_batch).to(self.Q_network.device)
 
             # update the Q-values using the equation Q(s, a) = r(s, a) + gamma*max(Q(s', a))
@@ -176,6 +176,8 @@ class RLAgent(object):
             
             # set loss function (huber), backwards propagation, and optimiser step
             loss = self.Q_network.loss(q_target, q_predicted).to(self.Q_network.device)
+
+            loss = loss.clamp(-1, 1)
             loss.backward()
             self.Q_network.optimiser.step()
 
@@ -187,12 +189,13 @@ class RLAgent(object):
             # for plotting to determine optimum learning rate
             self.loss_list.append(loss.item())
             self.lr_list.append(self.learning_rate)
+            
             '''
             if self.learning_rate < 1:
                 self.learning_rate *= self.lr_scale
                 self.Q_network.optimiser = optim.Adam(self.Q_network.parameters(), lr=self.learning_rate)
             '''
-
+            
 
     def get_batch(self, batch_number):
 

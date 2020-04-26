@@ -151,6 +151,8 @@ class GreedyAgent():
             return legal_hand
         else:
             if trick_number == 1:
+                if 'Qs' in hand:
+                    hand.remove('Qs')
                 return self.remove_hearts(hand.copy())
             else:
                 return hand
