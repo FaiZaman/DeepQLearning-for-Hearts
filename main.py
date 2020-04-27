@@ -7,15 +7,14 @@ from Hearts import *
 from Agents.humanAgent import HumanAgent
 from Agents.randomAgent import RandomAgent
 from Agents.greedyAgent import GreedyAgent
-from Agents.PerfectedGreedyAgent import PerfectedGreedyAgent
 from Agents.RLAgent import RLAgent
 
 PATH = "C:/Users/faizz/University Work/Year 3/Individual Project TH86/New_Model"
 
-training = True
-loaded = True
+training = False
+loaded = False
 
-num_episodes = 1000
+num_episodes = 2000
 max_score = 100
 
 playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
@@ -60,19 +59,19 @@ agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
 """
+# RL Agent training
+"""
+agent_list[0] = RLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions, training)
+agent_list[1] = GreedyAgent(playersNameList[1], {'print_info': False})
+agent_list[2] = GreedyAgent(playersNameList[2], {'print_info': False})
+agent_list[3] = GreedyAgent(playersNameList[3], {'print_info': False})
 """
 # RL Agent testing
 agent_list[0] = RLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions, training)
 agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
-"""
-# RL Agent training
 
-agent_list[0] = RLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions, training)
-agent_list[1] = GreedyAgent(playersNameList[1], {'print_info': False})
-agent_list[2] = GreedyAgent(playersNameList[2], {'print_info': False})
-agent_list[3] = GreedyAgent(playersNameList[3], {'print_info': False})
 
 env = gym.make('Hearts_Card_Game-v0')
 env.__init__(playersNameList, max_score)
@@ -95,7 +94,7 @@ for episode_number in range(num_episodes + 1):
             print("Testing Episode Number:", episode_number)
 
         if not loaded:
-            model = load_model(agent_list[0].Q_network, load_number=1000)
+            model = load_model(agent_list[0].Q_network, load_number=2000)
             loaded = True
 
     while not done:

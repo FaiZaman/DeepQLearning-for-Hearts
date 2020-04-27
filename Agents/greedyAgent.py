@@ -125,8 +125,9 @@ class GreedyAgent():
 
         smallest_card = str(smallest_card_value) + smallest_card_suit
         return smallest_card
-    
 
+
+    # removes and returns the hand with no hearts
     def remove_hearts(self, hand):
 
         no_hearts_hand = hand.copy()
@@ -139,6 +140,7 @@ class GreedyAgent():
         return no_hearts_hand
 
 
+    # removes and returns a hand containing only legal cards
     def remove_illegal_cards(self, hand, trick_suit, trick_number, hearts_broken):
 
         legal_present = self.is_legal_present(hand, trick_suit)
@@ -158,6 +160,7 @@ class GreedyAgent():
                 return hand
 
 
+    # returns a boolean verifying whether the hand contains any legal cards
     def is_legal_present(self, hand, trick_suit):
 
         for card in hand:
