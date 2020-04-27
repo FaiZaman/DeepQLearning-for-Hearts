@@ -1,5 +1,6 @@
 import gym
 import time
+import torch as T
 from matplotlib import pyplot as plt
 
 from Hearts import *
@@ -9,7 +10,12 @@ from Agents.greedyAgent import GreedyAgent
 from Agents.PerfectedGreedyAgent import PerfectedGreedyAgent
 from Agents.RLAgent import RLAgent
 
-num_episodes = 2000
+PATH = "C:/Users/faizz/University Work/Year 3/Individual Project TH86/New_Model"
+
+training = True
+loaded = True
+
+num_episodes = 1000
 max_score = 100
 
 playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
@@ -18,11 +24,27 @@ agent_list = [0, 0, 0, 0]
 # hyperparameters
 gamma = 0.99
 epsilon = 1
-learning_rate = 0.00001
+learning_rate = 0.0001
 
 batch_size = 32
 n_actions = 52
 score_list = [[], [], [], []]
+
+
+# saving and loading the models
+def save_model(model, episode_number):
+
+    save_path = PATH + "/model_" + str(episode_number) + ".pth"
+    T.save(model.state_dict(), save_path)
+
+
+def load_model(model, load_number):
+
+    load_path = PATH + "/model_" + str(load_number) + ".pth"
+    model.load_state_dict(T.load(load_path))
+
+    return model
+
 
 # Human vs Random
 """
@@ -39,15 +61,15 @@ agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
 """
 """
-# Greedy Agent
-agent_list[0] = PerfectedGreedyAgent(playersNameList[0], {'print_info': False})
-agent_list[1] = GreedyAgent(playersNameList[1], {'print_info': False})
-agent_list[2] = GreedyAgent(playersNameList[2], {'print_info': False})
-agent_list[3] = GreedyAgent(playersNameList[3], {'print_info': False})
+# RL Agent testing
+agent_list[0] = RLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions, training)
+agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
+agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
+agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
 """
-# RL Agent
+# RL Agent training
 
-agent_list[0] = RLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions)
+agent_list[0] = RLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions, training)
 agent_list[1] = GreedyAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = GreedyAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = GreedyAgent(playersNameList[3], {'print_info': False})
@@ -57,13 +79,24 @@ env.__init__(playersNameList, max_score)
 
 start_time = time.time()
 
-for episode_number in range(num_episodes):
+for episode_number in range(num_episodes + 1):
         
     observation = env.reset()   # return initial observation
     done = False
     scores = [0, 0, 0, 0]
-    if episode_number % 100 == 0:
-        print("=======================ep number:", episode_number)
+
+    if training:
+        if episode_number % 100 == 0:
+            print("Training Episode Number:", episode_number)
+            model = agent_list[0].Q_network
+            save_model(model, episode_number)
+    else:
+        if episode_number % 100 == 0:
+            print("Testing Episode Number:", episode_number)
+
+        if not loaded:
+            model = load_model(agent_list[0].Q_network, load_number=1000)
+            loaded = True
 
     while not done:
 
@@ -72,10 +105,12 @@ for episode_number in range(num_episodes):
         is_broadcast = observation['broadcast']
         action = None
 
-        # let other players know of state if state is public, otherwise if action then only player performing knows
+        # let other players know of state if state is public 
+        # otherwise if action then only player performing knows
         if is_broadcast:
             for agent in agent_list:
-                if isinstance(agent, RandomAgent) or isinstance(agent, GreedyAgent) or isinstance(agent, HumanAgent):
+                if isinstance(agent, RandomAgent) or isinstance(agent, GreedyAgent)\
+                or isinstance(agent, HumanAgent):
                     agent.perform_action(observation)
 
         else:
@@ -92,9 +127,10 @@ for episode_number in range(num_episodes):
 
         for agent in agent_list:
             if isinstance(agent, RLAgent):
-                if observation['event_name'] != 'GameOver':
+                if observation['event_name'] != 'GameOver' and training:
 
-                    if observation['event_name'] == 'PlayTrick' and observation['data']['playerName'] == "Agent":
+                    if observation['event_name'] == 'PlayTrick' and \
+                        observation['data']['playerName'] == "Agent":
                         
                         # store current state and action to be used in experience replay
                         agent.last_current_state = observation
@@ -108,7 +144,8 @@ for episode_number in range(num_episodes):
                         stored_reward = reward
                         stored_next_state = new_observation
 
-                        agent.store_transition(stored_current_state, stored_action, stored_reward, stored_next_state, done)
+                        agent.store_transition(stored_current_state, stored_action, \
+                                                stored_reward, stored_next_state, done)
                         
                         # agent learns every 4 steps
                         if agent.learn_step % 4 == 0:
@@ -188,10 +225,12 @@ def plot_scores():
                 plottable_score_list[player].append(average_score_range)
 
     plt.ylim(-100, 0)
-    plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0], plottable_score_list[0], label="Agent")
+    plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0],\
+             plottable_score_list[0], label="DQL Agent")
 
     for i in range(1, len(plottable_score_list)):
-        plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0], plottable_score_list[i], label="Greedy " + str(i))
+        plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0],\
+                 plottable_score_list[i], label="Greedy Agent" + str(i))
 
     plt.title('Scores over episodes')
     plt.xlabel('Episode number')
@@ -205,4 +244,5 @@ time_taken = time.time() - start_time
 plot_scores()
 plot_loss_episodes()
 
-print("The program took %s seconds to run %s episodes" % (time_taken, num_episodes))
+print("The program took %s seconds to %s %s episodes" % \
+    (time_taken, "run" if training else "test", num_episodes))

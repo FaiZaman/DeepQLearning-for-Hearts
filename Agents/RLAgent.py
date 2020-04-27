@@ -8,8 +8,10 @@ from Dictionaries import Dictionary
 class RLAgent(object):
 
     # batch size = number of experiences sampled
-    def __init__(self, name, gamma, epsilon, learning_rate, batch_size, n_actions,    # gamma = discount factor
-                 max_mem_size=1000000, epsilon_min=0.01, epsilon_decrement = 0.996):        # epsilon for epsilon greedy
+    # gamma = discount factor
+    # epsilon for epsilon greedy
+    def __init__(self, name, gamma, epsilon, learning_rate, batch_size, n_actions,
+                 training, max_mem_size=1000000, epsilon_min=0.01, epsilon_decrement = 0.996):
 
         self.name = name
         self.gamma = gamma
@@ -17,6 +19,7 @@ class RLAgent(object):
         self.batch_size = batch_size
         self.n_actions = n_actions
         self.learning_rate = learning_rate
+        self.training = training
 
         # e_end is the lowest value epsilon will decrease to, e_dec is factor by which epsilon decreases
         self.epsilon_min = epsilon_min              
@@ -33,7 +36,7 @@ class RLAgent(object):
         self.tau_counter = 0
 
         self.state_memory = np.zeros((self.memory_size, *[2, 52]))
-        self.new_state_memory = np.zeros((self.memory_size, *[2, 52]))   # used to overwrite memories as agent acquires them
+        self.new_state_memory = np.zeros((self.memory_size, *[2, 52]))   # overwrite memories acquired
         self.action_memory = np.zeros((self.memory_size, self.n_actions), dtype=np.uint8)
         self.reward_memory = np.zeros(self.memory_size)
         self.terminal_memory = np.zeros(self.memory_size, dtype=np.uint8)   # sequence of done flags
@@ -121,7 +124,7 @@ class RLAgent(object):
                             playable_action_space.append(hand.index(card))      
 
                 # epsilon greedy policy
-                if rand.random() < self.epsilon:
+                if rand.random() < self.epsilon and self.training:
                     card_chosen = np.random.choice(playable_hand)
                 else:
                     data_tensor = self.convert_state_to_tensor(observation)
@@ -145,7 +148,8 @@ class RLAgent(object):
     
     def learn(self):
 
-        if self.memory_counter > self.batch_size:  # improves correlation by only learning with enough memories
+        # if statement improves correlation by only learning with enough memories
+        if self.memory_counter > self.batch_size:  
             
             # reset grad and set maximum memory
             self.Q_network.optimiser.zero_grad()
@@ -156,17 +160,20 @@ class RLAgent(object):
 
             # get a batch of experiences from replay memory
             batch = np.random.choice(max_memory, self.batch_size)
-            state_batch, action_indices, reward_batch, new_state_batch, terminal_batch = self.get_batch(batch)
+            state_batch, action_indices, reward_batch, new_state_batch, terminal_batch =\
+                self.get_batch(batch)
 
-            # input: (64, 2, 52)
-            q_predicted = self.Q_network.forward(state_batch).to(self.Q_network.device)     # (64, 2, 52) outputs
+            # input and outputs: (64, 2, 52)
+            q_predicted = self.Q_network.forward(state_batch).to(self.Q_network.device)
             q_target = self.target_network.forward(state_batch).to(self.target_network.device)
             q_next = self.Q_network.forward(new_state_batch).to(self.Q_network.device)
 
             # update the Q-values using the equation Q(s, a) = r(s, a) + gamma*max(Q(s', a))
             batch_index = np.arange(self.batch_size, dtype=np.int32)
             action_indices = T.Tensor(action_indices).long().to(self.Q_network.device)
-            q_target[batch_index, action_indices] = reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
+            
+            q_target[batch_index, action_indices] =\
+                reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
 
             # update epsilon for epsilon greedy
             if self.epsilon > self.epsilon_min:

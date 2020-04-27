@@ -28,7 +28,7 @@ class RandomAgent:
             if self.print_info:
                 print(observation)
             
-            passCards = random.sample(observation['data']['hand'],3)
+            passCards = random.sample(observation['data']['hand'], 3)
             
             if self.print_info:
                 print(self.name, ' pass cards: ', passCards)
