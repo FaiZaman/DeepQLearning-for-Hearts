@@ -2,11 +2,10 @@ import numpy
 
 class GreedyAgent():
 
-
     def __init__(self, name, params = None):
 
         self.name = name
-    
+
 
     def perform_action(self, observation):
 
@@ -54,17 +53,22 @@ class GreedyAgent():
             if '2c' in hand:
                 smallest_card = '2c'
             else:
+
                 hearts_broken = observation['data']['IsHeartsBroken']
                 trick_suit = observation['data']['trickSuit']
                 trick_number = observation['data']['trickNum']
+
                 if trick_suit == "Unset":
+
                     if hearts_broken and trick_number > 1:
                         # agent plays first card of any suit since hearts is broken
                         smallest_card = self.find_smallest_card(hand)
+
                     else:
                         # agent plays first card of any suit except for hearts
                         no_hearts_hand = self.remove_hearts(hand)
                         smallest_card = self.find_smallest_card(no_hearts_hand)
+
                 else:
                     # agent plays second/third/fourth card
                     # if at least one card of tricksuit in hand, limit to cards of tricksuit

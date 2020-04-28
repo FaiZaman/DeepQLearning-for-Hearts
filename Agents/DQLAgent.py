@@ -5,7 +5,7 @@ import numpy as np
 from Network import DeepQNetwork
 from Dictionaries import Dictionary
 
-class RLAgent(object):
+class DQLAgent(object):
 
     # batch size = number of experiences sampled
     # gamma = discount factor

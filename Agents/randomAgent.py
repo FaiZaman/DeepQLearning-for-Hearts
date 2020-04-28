@@ -3,7 +3,6 @@ from datetime import datetime
 
 class RandomAgent:
 
-
     def __init__(self, name, params = None):
         random.seed(datetime.now())
         self.name = name
@@ -21,7 +20,7 @@ class RandomAgent:
         event = observation['event_name']
         
         if event == 'GameStart' or event == 'NewRound' or event == 'PassCards' or event == 'ShowPlayerHand':
-            if self.print_info
+            if self.print_info:
                 print(observation)
         
         if event == 'PassCards':
@@ -40,28 +39,50 @@ class RandomAgent:
                 }
 
         elif event == 'PlayTrick':
-            
+
             if self.print_info:
                 print("===========", observation, "==========")
 
             hand = observation['data']['hand']
             if '2c' in hand:
-                choose_card = '2c'
+                random_card = '2c'
             else:
-                choose_card = random.choice(observation['data']['hand'])
-                if self.print_info:
-                    print(self.name, ' choose card: ', choose_card)
+
+                hearts_broken = observation['data']['IsHeartsBroken']
+                trick_suit = observation['data']['trickSuit']
+                trick_number = observation['data']['trickNum']
+
+                if trick_suit == "Unset":
+
+                    if hearts_broken and trick_number > 1:
+                        # agent plays first card of any suit since hearts is broken
+                        random_card = random.choice(hand)
+
+                    else:
+                        # agent plays first card of any suit except for hearts
+                        no_hearts_hand = self.remove_hearts(hand)
+                        random_card = random.choice(no_hearts_hand)
+
+                else:
+                    # agent plays second/third/fourth card
+                    # if at least one card of tricksuit in hand, limit to cards of tricksuit
+                    legal_hand = self.remove_illegal_cards(hand, trick_suit, trick_number, hearts_broken)
+                    random_card = random.choice(legal_hand)
+
+            if self.print_info:
+                print(self.name, ' choose card: ', random_card)
+
             return {
                     "event_name" : "PlayTrick_Action",
                     "data" : {
                         'playerName': self.name,
-                        'action': {'card': choose_card}
+                        'action': {'card': random_card}
                     }
                 }
 
         if self.print_info:
-            elif event == 'ShowTrickAction' or event == 'ShowTrickEnd'\
-                or event == 'RoundEnd' or event == 'GameOver':
+            if event == 'ShowTrickAction' or event == 'ShowTrickEnd' or\
+               event == 'RoundEnd' or event == 'GameOver':
                 print(observation)    
 
 

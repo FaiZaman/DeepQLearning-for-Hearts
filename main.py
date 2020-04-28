@@ -7,14 +7,14 @@ from Hearts import *
 from Agents.humanAgent import HumanAgent
 from Agents.randomAgent import RandomAgent
 from Agents.greedyAgent import GreedyAgent
-from Agents.RLAgent import RLAgent
+from Agents.DQLAgent import DQLAgent
 
-PATH = "C:/Users/faizz/University Work/Year 3/Individual Project TH86/New_Model"
+PATH = "C:/Users/faizz/University Work/Year 3/Individual Project TH86/Triple_New_Model"
 
 training = False
 loaded = False
 
-num_episodes = 2000
+num_episodes = 200
 max_score = 100
 
 playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
@@ -45,33 +45,27 @@ def load_model(model, load_number):
     return model
 
 
-# Human vs Random
+# DQL Agent Training
 """
-agent_list[0] = HumanAgent(playersNameList[0], {})
-agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
-agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
-agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
-"""
-# Greedy vs Random play
-"""
-agent_list[0] = Greedy(playersNameList[0], {'print_info': False})
-agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
-agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
-agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
-"""
-# RL Agent training
-"""
-agent_list[0] = RLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions, training)
+agent_list[0] = DQLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions, training)
 agent_list[1] = GreedyAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = GreedyAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = GreedyAgent(playersNameList[3], {'print_info': False})
 """
-# RL Agent testing
-agent_list[0] = RLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions, training)
+# DQL Agent Testing v Random
+
+agent_list[0] = DQLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions, training)
 agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
 
+# DQL Agent Testing v Human and Random
+"""
+agent_list[0] = DQLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions, training)
+agent_list[1] = HumanAgent()
+agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
+agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
+"""
 
 env = gym.make('Hearts_Card_Game-v0')
 env.__init__(playersNameList, max_score)
@@ -90,7 +84,7 @@ for episode_number in range(num_episodes + 1):
             model = agent_list[0].Q_network
             save_model(model, episode_number)
     else:
-        if episode_number % 100 == 0:
+        if episode_number % 10 == 0:
             print("Testing Episode Number:", episode_number)
 
         if not loaded:
@@ -116,7 +110,7 @@ for episode_number in range(num_episodes + 1):
             playerName = observation['data']['playerName']
             for agent in agent_list:
                 if agent.name == playerName:
-                    if isinstance(agent, RLAgent):
+                    if isinstance(agent, DQLAgent):
                         action = agent.choose_action(observation)
                     else:
                         action = agent.perform_action(observation)
@@ -125,7 +119,7 @@ for episode_number in range(num_episodes + 1):
         new_observation, reward, done, info = env.step(action)
 
         for agent in agent_list:
-            if isinstance(agent, RLAgent):
+            if isinstance(agent, DQLAgent):
                 if observation['event_name'] != 'GameOver' and training:
 
                     if observation['event_name'] == 'PlayTrick' and \
@@ -195,15 +189,14 @@ def plot_loss_lr():
 
     plottable_loss_list = []
     plottable_lr_list = []
-    '''
+
     # plotting loss over learning rate
     for i in range(1, len(loss_list)):
         if i % loss_plot_range == 0:
             average_loss_range = sum(loss_list[i - loss_plot_range:i])/loss_plot_range
             plottable_loss_list.append(average_loss_range)
             plottable_lr_list.append(lr_list[i])
-    '''
-    print(len(loss_list), loss_plot_range, plottable_loss_list, plottable_lr_list)
+
 
     plt.plot(lr_list, loss_list)
     plt.title('Loss over learning rate')
@@ -216,6 +209,7 @@ def plot_scores():
 
     # plot the results
     plottable_score_list = [[], [], [], []]
+    opponent_label = "Greedy Agent " if training else "Random Agent "
 
     for player in range(0, 4):
         for i in range(1, num_episodes + 1):
@@ -229,7 +223,7 @@ def plot_scores():
 
     for i in range(1, len(plottable_score_list)):
         plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0],\
-                 plottable_score_list[i], label="Greedy Agent" + str(i))
+                 plottable_score_list[i], label=opponent_label + str(i))
 
     plt.title('Scores over episodes')
     plt.xlabel('Episode number')
@@ -239,6 +233,7 @@ def plot_scores():
     plt.show()
 
 time_taken = time.time() - start_time
+
 #plot_loss_lr()
 plot_scores()
 plot_loss_episodes()
