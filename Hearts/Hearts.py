@@ -247,6 +247,7 @@ class HeartsEnv(Env):
         = {'event_name': self.event
            , 'broadcast': True
            , 'data': {
+               "roundNumber" : self.round,
                "players" : [
                    {'playerName': self.players[0].name,
                     'score': self.players[0].score},

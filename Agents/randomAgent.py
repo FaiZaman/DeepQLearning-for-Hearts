@@ -19,7 +19,7 @@ class RandomAgent:
 
         event = observation['event_name']
         
-        if event == 'GameStart' or event == 'NewRound' or event == 'PassCards' or event == 'ShowPlayerHand':
+        if event == 'NewRound' or event == 'ShowPlayerHand':
             if self.print_info:
                 print(observation)
         
@@ -81,7 +81,7 @@ class RandomAgent:
                 }
 
         if self.print_info:
-            if event == 'ShowTrickAction' or event == 'ShowTrickEnd' or\
+            if event == 'ShowTrickEnd' or\
                event == 'RoundEnd' or event == 'GameOver':
                 print(observation)    
 

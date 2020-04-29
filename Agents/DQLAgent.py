@@ -10,10 +10,10 @@ class DQLAgent(object):
     # batch size = number of experiences sampled
     # gamma = discount factor
     # epsilon for epsilon greedy
-    def __init__(self, name, gamma, epsilon, learning_rate, batch_size, n_actions,
+    def __init__(self, gamma, epsilon, learning_rate, batch_size, n_actions,
                  training, max_mem_size=1000000, epsilon_min=0.01, epsilon_decrement = 0.996):
 
-        self.name = name
+        self.name = "DQLAgent"
         self.gamma = gamma
         self.epsilon = epsilon
         self.batch_size = batch_size
@@ -81,7 +81,7 @@ class DQLAgent(object):
         # add to memories and increment counter
         self.state_memory[index] = current_state_tensor
         self.action_memory[index] = actions
-        self.reward_memory[index] = -reward[0]
+        self.reward_memory[index] = -reward
         self.new_state_memory[index] = next_state_tensor
         self.terminal_memory[index] = 1 - terminal
 

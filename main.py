@@ -14,8 +14,8 @@ PATH = "C:/Users/faizz/University Work/Year 3/Individual Project TH86/Triple_New
 training = False
 loaded = False
 
-num_episodes = 200
-max_score = 100
+num_episodes = 2500
+max_score = 10
 
 playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
 agent_list = [0, 0, 0, 0]
@@ -47,28 +47,32 @@ def load_model(model, load_number):
 
 # DQL Agent Training
 """
-agent_list[0] = DQLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions, training)
+agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, training)
 agent_list[1] = GreedyAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = GreedyAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = GreedyAgent(playersNameList[3], {'print_info': False})
 """
 # DQL Agent Testing v Random
-
-agent_list[0] = DQLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions, training)
+"""
+agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, training)
 agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
 agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
-
-# DQL Agent Testing v Human and Random
 """
-agent_list[0] = DQLAgent(playersNameList[0], gamma, epsilon, learning_rate, batch_size, n_actions, training)
-agent_list[1] = HumanAgent()
+# DQL Agent Testing v Human and Random
+
+agent_list[0] = HumanAgent()
+agent_list[1] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, training)
 agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
 agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
-"""
+
+dql_agent_index = 0
+for index in range(0, len(agent_list)):
+    if isinstance(agent_list[index], DQLAgent):
+        dql_agent_index = index
 
 env = gym.make('Hearts_Card_Game-v0')
-env.__init__(playersNameList, max_score)
+env.__init__([agent.name for agent in agent_list], max_score)
 
 start_time = time.time()
 
@@ -81,14 +85,14 @@ for episode_number in range(num_episodes + 1):
     if training:
         if episode_number % 100 == 0:
             print("Training Episode Number:", episode_number)
-            model = agent_list[0].Q_network
+            model = agent_list[dql_agent_index].Q_network
             save_model(model, episode_number)
     else:
         if episode_number % 10 == 0:
             print("Testing Episode Number:", episode_number)
 
         if not loaded:
-            model = load_model(agent_list[0].Q_network, load_number=2000)
+            model = load_model(agent_list[dql_agent_index].Q_network, load_number=0)
             loaded = True
 
     while not done:
@@ -134,7 +138,7 @@ for episode_number in range(num_episodes + 1):
                         # store reward and commence storing the transition
                         stored_current_state = agent.last_current_state
                         stored_action = agent.last_action
-                        stored_reward = reward
+                        stored_reward = reward[dql_agent_index]
                         stored_next_state = new_observation
 
                         agent.store_transition(stored_current_state, stored_action, \
@@ -162,8 +166,8 @@ for episode_number in range(num_episodes + 1):
             #print('\nGame Over!\n')
 
 
-loss_list = agent_list[0].loss_list
-lr_list = agent_list[0].lr_list
+loss_list = agent_list[dql_agent_index].loss_list
+lr_list = agent_list[dql_agent_index].lr_list
 
 loss_plot_range = int(len(loss_list) / 10)
 score_plot_range = int(num_episodes / 10)
@@ -219,7 +223,7 @@ def plot_scores():
 
     plt.ylim(-100, 0)
     plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0],\
-             plottable_score_list[0], label="DQL Agent")
+             plottable_score_list[dql_agent_index], label="DQL Agent")
 
     for i in range(1, len(plottable_score_list)):
         plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0],\
