@@ -12,7 +12,7 @@ class HumanAgent:
         return name
 
 
-    def perform_action(self, observation):
+    def choose_action(self, observation):
 
         event = observation['event_name']
 

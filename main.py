@@ -9,13 +9,14 @@ from Agents.randomAgent import RandomAgent
 from Agents.greedyAgent import GreedyAgent
 from Agents.DQLAgent import DQLAgent
 
+# change this to the directory you want to save and load your own models
 PATH = "C:/Users/faizz/University Work/Year 3/Individual Project TH86/Triple_New_Model"
 
 training = False
 loaded = False
 
-num_episodes = 2500
-max_score = 10
+num_episodes = 100
+max_score = 100
 
 playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
 agent_list = [0, 0, 0, 0]
@@ -48,23 +49,24 @@ def load_model(model, load_number):
 # DQL Agent Training
 """
 agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, training)
-agent_list[1] = GreedyAgent(playersNameList[1], {'print_info': False})
-agent_list[2] = GreedyAgent(playersNameList[2], {'print_info': False})
-agent_list[3] = GreedyAgent(playersNameList[3], {'print_info': False})
+agent_list[1] = GreedyAgent(playersNameList[1])
+agent_list[2] = GreedyAgent(playersNameList[2])
+agent_list[3] = GreedyAgent(playersNameList[3])
 """
 # DQL Agent Testing v Random
-"""
-agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, training)
-agent_list[1] = RandomAgent(playersNameList[1], {'print_info': False})
-agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
-agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
-"""
-# DQL Agent Testing v Human and Random
 
+agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, training)
+agent_list[1] = RandomAgent(playersNameList[1])
+agent_list[2] = RandomAgent(playersNameList[2])
+agent_list[3] = RandomAgent(playersNameList[3])
+
+# DQL Agent Testing v Human and Random
+"""
 agent_list[0] = HumanAgent()
 agent_list[1] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, training)
-agent_list[2] = RandomAgent(playersNameList[2], {'print_info': False})
-agent_list[3] = RandomAgent(playersNameList[3], {'print_info': False})
+agent_list[2] = RandomAgent(playersNameList[2])
+agent_list[3] = RandomAgent(playersNameList[3])
+"""
 
 dql_agent_index = 0
 for index in range(0, len(agent_list)):
@@ -92,7 +94,7 @@ for episode_number in range(num_episodes + 1):
             print("Testing Episode Number:", episode_number)
 
         if not loaded:
-            model = load_model(agent_list[dql_agent_index].Q_network, load_number=0)
+            model = load_model(agent_list[dql_agent_index].Q_network, load_number=2500)
             loaded = True
 
     while not done:
@@ -101,58 +103,48 @@ for episode_number in range(num_episodes + 1):
         env.render()        
         is_broadcast = observation['broadcast']
         action = None
+        dql_agent = agent_list[dql_agent_index]
 
         # let other players know of state if state is public 
         # otherwise if action then only player performing knows
         if is_broadcast:
             for agent in agent_list:
-                if isinstance(agent, RandomAgent) or isinstance(agent, GreedyAgent)\
-                or isinstance(agent, HumanAgent):
-                    agent.perform_action(observation)
+                if isinstance(agent, HumanAgent):
+                    agent.choose_action(observation)
 
         else:
             playerName = observation['data']['playerName']
             for agent in agent_list:
                 if agent.name == playerName:
-                    if isinstance(agent, DQLAgent):
-                        action = agent.choose_action(observation)
-                    else:
-                        action = agent.perform_action(observation)
+                    action = agent.choose_action(observation)
 
         # get and store environment data after making action, then learn and reset observation
         new_observation, reward, done, info = env.step(action)
 
-        for agent in agent_list:
-            if isinstance(agent, DQLAgent):
-                if observation['event_name'] != 'GameOver' and training:
+        if observation['event_name'] != 'GameOver' and training:
 
-                    if observation['event_name'] == 'PlayTrick' and \
-                        observation['data']['playerName'] == "Agent":
-                        
-                        # store current state and action to be used in experience replay
-                        agent.last_current_state = observation
-                        agent.last_action = action
+            if observation['event_name'] == 'PlayTrick' and \
+                observation['data']['playerName'] == "Agent":
+                
+                # store current state and action to be used in experience replay
+                dql_agent.last_current_state = observation
+                dql_agent.last_action = action
 
-                    elif new_observation['event_name'] == 'ShowTrickEnd':
+            elif new_observation['event_name'] == 'ShowTrickEnd':
 
-                        # store reward and commence storing the transition
-                        stored_current_state = agent.last_current_state
-                        stored_action = agent.last_action
-                        stored_reward = reward[dql_agent_index]
-                        stored_next_state = new_observation
+                # store reward and commence storing the transition
+                stored_current_state = dql_agent.last_current_state
+                stored_action = dql_agent.last_action
+                stored_reward = reward[dql_agent_index]
+                stored_next_state = new_observation
 
-                        agent.store_transition(stored_current_state, stored_action, \
-                                                stored_reward, stored_next_state, done)
-                        
-                        # agent learns every 4 steps
-                        if agent.learn_step % 4 == 0:
-                            agent.learn()
-                        agent.learn_step += 1
-
-                    else:
-                        break;
-            else:
-                break;
+                dql_agent.store_transition(stored_current_state, stored_action, \
+                                        stored_reward, stored_next_state, done)
+                
+                # agent learns every 4 steps
+                if dql_agent.learn_step % 4 == 0:
+                    dql_agent.learn()
+                dql_agent.learn_step += 1
 
         observation = new_observation
 
@@ -209,11 +201,12 @@ def plot_loss_lr():
     plt.show()
 
 
-def plot_scores():
+def plot_scores(training):
 
     # plot the results
     plottable_score_list = [[], [], [], []]
     opponent_label = "Greedy Agent " if training else "Random Agent "
+    y_label = "Reward" if training else "Score"
 
     for player in range(0, 4):
         for i in range(1, num_episodes + 1):
@@ -231,7 +224,7 @@ def plot_scores():
 
     plt.title('Scores over episodes')
     plt.xlabel('Episode number')
-    plt.ylabel('Reward')
+    plt.ylabel(y_label)
     plt.legend(loc="upper right")
 
     plt.show()
@@ -239,8 +232,8 @@ def plot_scores():
 time_taken = time.time() - start_time
 
 #plot_loss_lr()
-plot_scores()
-plot_loss_episodes()
+plot_scores(training)
+#plot_loss_episodes()
 
 print("The program took %s seconds to %s %s episodes" % \
     (time_taken, "run" if training else "test", num_episodes))

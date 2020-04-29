@@ -3,32 +3,19 @@ from datetime import datetime
 
 class RandomAgent:
 
-    def __init__(self, name, params = None):
+    def __init__(self, name):
+        
         random.seed(datetime.now())
         self.name = name
-        
-        if params != None:
-            self.print_info = params['print_info']
-        else:
-            self.print_info = False
-    
 
-    def perform_action(self, observation):
 
-        self.print_info = False
+    def choose_action(self, observation):
 
         event = observation['event_name']
-        
-        if event == 'NewRound' or event == 'ShowPlayerHand':
-            if self.print_info:
-                print(observation)
         
         if event == 'PassCards':
 
             passCards = random.sample(observation['data']['hand'], 3)
-            
-            if self.print_info:
-                print(self.name, ' pass cards: ', passCards)
                 
             return {
                     "event_name" : "PassCards_Action",
@@ -39,9 +26,6 @@ class RandomAgent:
                 }
 
         elif event == 'PlayTrick':
-
-            if self.print_info:
-                print("===========", observation, "==========")
 
             hand = observation['data']['hand']
             if '2c' in hand:
@@ -69,21 +53,13 @@ class RandomAgent:
                     legal_hand = self.remove_illegal_cards(hand, trick_suit, trick_number, hearts_broken)
                     random_card = random.choice(legal_hand)
 
-            if self.print_info:
-                print(self.name, ' choose card: ', random_card)
-
             return {
                     "event_name" : "PlayTrick_Action",
                     "data" : {
                         'playerName': self.name,
                         'action': {'card': random_card}
                     }
-                }
-
-        if self.print_info:
-            if event == 'ShowTrickEnd' or\
-               event == 'RoundEnd' or event == 'GameOver':
-                print(observation)    
+                }  
 
 
     # removes and returns the hand with no hearts
