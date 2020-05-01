@@ -7,6 +7,7 @@ class RandomAgent:
         
         random.seed(datetime.now())
         self.name = name
+        self.agent_type = "Random Agent "
 
 
     def choose_action(self, observation):

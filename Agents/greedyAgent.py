@@ -5,6 +5,7 @@ class GreedyAgent():
     def __init__(self, name):
 
         self.name = name
+        self.agent_type = "Greedy Agent "
 
 
     def choose_action(self, observation):

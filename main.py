@@ -10,13 +10,13 @@ from Agents.greedyAgent import GreedyAgent
 from Agents.DQLAgent import DQLAgent
 
 # change this to the directory you want to save and load your own models
-PATH = "C:/Users/faizz/University Work/Year 3/Individual Project TH86/Triple_New_Model"
+PATH = "C:/Users/faizz/University Work/Year 3/Individual Project TH86/Model"
 
 training = False
-num_episodes = 2000
+num_episodes = 10
 max_score = 100
 
-playersNameList = ['Agent', 'Boris', 'Calum', 'Diego']
+playersNameList = ['Arthur', 'Boris', 'Calum', 'Diego']
 agent_list = [0, 0, 0, 0]
 
 # hyperparameters
@@ -46,25 +46,25 @@ def load_model(model, load_number):
 
 
 # DQL Agent Training
-
+"""
 agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, training)
 agent_list[1] = GreedyAgent(playersNameList[1])
 agent_list[2] = GreedyAgent(playersNameList[2])
-agent_list[3] = GreedyAgent(playersNameList[3])
-
-# DQL Agent Testing v Random
+agent_list[3] = RandomAgent(playersNameList[3])
 """
+# DQL Agent Testing v Random
+
 agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, training)
 agent_list[1] = RandomAgent(playersNameList[1])
 agent_list[2] = RandomAgent(playersNameList[2])
 agent_list[3] = RandomAgent(playersNameList[3])
+
+# DQL Agent Testing v Human v Random v Greedy
 """
-# DQL Agent Testing v Human and Random
-"""
-agent_list[0] = HumanAgent()
-agent_list[1] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, training)
-agent_list[2] = RandomAgent(playersNameList[2])
-agent_list[3] = RandomAgent(playersNameList[3])
+agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, training)
+agent_list[1] = RandomAgent(playersNameList[1])
+agent_list[2] = HumanAgent()
+agent_list[3] = GreedyAgent(playersNameList[3])
 """
 
 dql_agent_index = 0
@@ -76,7 +76,7 @@ env = gym.make('Hearts_Card_Game-v0')
 env.__init__([agent.name for agent in agent_list], max_score)
 
 if not training:
-    model = load_model(agent_list[dql_agent_index].Q_network, load_number=2500)
+    model = load_model(agent_list[dql_agent_index].Q_network, load_number=2400)
 
 start_time = time.time()
 
@@ -92,7 +92,7 @@ for episode_number in range(num_episodes + 1):
             model = agent_list[dql_agent_index].Q_network
             save_model(model, episode_number)
     else:
-        if episode_number % 10 == 0:
+        if episode_number % 1 == 0:
             print("Testing Episode Number:", episode_number)
 
     while not done:
@@ -156,6 +156,7 @@ for episode_number in range(num_episodes + 1):
                 score = data['players'][pair]['score']
                 average_score = score/round_number
                 average_scores_per_round[pair].append(-average_score)
+            print("Game over")
 
         observation = new_observation
 
@@ -210,11 +211,10 @@ def plot_loss_lr():
     plt.show()
 
 
-def plot_total_scores(training):
+def plot_total_scores(agent_list, training):
 
     # plot the results
     plottable_score_list = [[], [], [], []]
-    opponent_label = "Greedy Agent " if training else "Random Agent "
     y_label = "Reward" if training else "Score"
 
     for player in range(0, 4):
@@ -226,12 +226,17 @@ def plot_total_scores(training):
     plt.ylim(-100, 0)
     plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0],\
              plottable_score_list[dql_agent_index], label="DQL Agent")
+    
+    del plottable_score_list[dql_agent_index]
+    del agent_list[dql_agent_index]
 
-    for i in range(1, len(plottable_score_list)):
+    for opponent_index in range(0, len(plottable_score_list)):
+        
+        opponent_label = agent_list[opponent_index].agent_type
         plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0],\
-                 plottable_score_list[i], label=opponent_label + str(i))
+                 plottable_score_list[opponent_index], label=opponent_label)
 
-    plt.title('Scores over episodes')
+    #plt.title('Scores over episodes')
     plt.xlabel('Episode number')
     plt.ylabel(y_label)
     plt.legend(loc="upper right")
@@ -239,11 +244,11 @@ def plot_total_scores(training):
     plt.show()
 
 
-def plot_round_scores(training):
+def plot_round_scores(agent_list, training):
 
     # plot the results
     plottable_score_list = [[], [], [], []]
-    opponent_label = "Greedy Agent " if training else "Random Agent "
+    opponent_label = "Greedy Agent " if training else "Greedy Agent "
     y_label = "Reward" if training else "Score"
 
     for player in range(0, 4):
@@ -257,11 +262,16 @@ def plot_round_scores(training):
     plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0],\
              plottable_score_list[dql_agent_index], label="DQL Agent")
 
-    for i in range(1, len(plottable_score_list)):
-        plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0],\
-                 plottable_score_list[i], label=opponent_label + str(i))
+    del plottable_score_list[dql_agent_index]
+    del agent_list[dql_agent_index]
 
-    plt.title('Average round scores over episodes')
+    for opponent_index in range(0, len(plottable_score_list)):
+        
+        opponent_label = agent_list[opponent_index].agent_type
+        plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0],\
+                 plottable_score_list[opponent_index], label=opponent_label)
+
+    #plt.title('Average round scores over episodes')
     plt.xlabel('Episode number')
     plt.ylabel(y_label)
     plt.legend(loc="upper right")
@@ -270,8 +280,8 @@ def plot_round_scores(training):
 
 time_taken = time.time() - start_time
 
-plot_total_scores(training)
-plot_round_scores(training)
+plot_total_scores(agent_list.copy(), training)
+plot_round_scores(agent_list, training)
 
 print("The program took %s seconds to %s %s episodes" % \
     (time_taken, "run" if training else "test", num_episodes))

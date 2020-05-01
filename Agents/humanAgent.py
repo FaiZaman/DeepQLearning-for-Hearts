@@ -4,6 +4,7 @@ class HumanAgent:
     def __init__(self):
 
         self.name = self.choose_name()
+        self.agent_type = "Human Player "
 
 
     def choose_name(self):
