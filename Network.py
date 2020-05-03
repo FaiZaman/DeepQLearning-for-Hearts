@@ -13,12 +13,12 @@ class DeepQNetwork(nn.Module):
         self.n_actions = n_actions
 
         # connect layers
-        self.input_hidden_connected_layer = nn.Linear(2 * 52, 1024)    # input = [2, 52]
+        self.input_hidden_connected_layer = nn.Linear(2 * 52, 1024)    # input = [2 x 52]
         self.hidden_hidden_connected_layer_1 = nn.Linear(1024, 512)
         self.hidden_hidden_connected_layer_2 = nn.Linear(512, 416)
         self.hidden_hidden_connected_layer_3 = nn.Linear(416, 256)
         self.hidden_hidden_connected_layer_4 = nn.Linear(256, 2 * 52)
-        self.hidden_output_connected_layer = nn.Linear(2 * 52, self.n_actions)
+        self.hidden_output_connected_layer = nn.Linear(2 * 52, self.n_actions)  # output = [1 x 52]
 
         # optimise the network
         self.optimiser = optim.Adam(self.parameters(), lr=learning_rate)

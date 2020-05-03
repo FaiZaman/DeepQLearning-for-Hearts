@@ -565,6 +565,7 @@ class HeartsEnv(Env):
         
         self.event = None
 
+
     def reset(self):
         
         # Generate a full deck of cards and shuffle it
@@ -575,14 +576,14 @@ class HeartsEnv(Env):
         self.event_data_for_server = {}
         
         return observation
-                
+
+
     def render(self):
         
         if self.renderInfo['printFlag']:
             print(self.renderInfo['Msg'])
             self.renderInfo['printFlag'] = False
             self.renderInfo['Msg'] = ""
-    
 
         
     def step(self, action_data):

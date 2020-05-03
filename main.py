@@ -9,23 +9,46 @@ from Agents.randomAgent import RandomAgent
 from Agents.greedyAgent import GreedyAgent
 from Agents.DQLAgent import DQLAgent
 
-# change this to the directory you want to save and load your own models
-PATH = "C:/Users/faizz/University Work/Year 3/Individual Project TH86/Model"
-
-training = False
-num_episodes = 10
-max_score = 100
-
-playersNameList = ['Arthur', 'Boris', 'Calum', 'Diego']
-agent_list = [0, 0, 0, 0]
-
 # hyperparameters
+num_episodes = 2500
 gamma = 0.99
 epsilon = 1
 learning_rate = 0.0001
-
 batch_size = 32
+tau = 10000
+learn_step = 4
+
+# change this to the directory you want to save and load your own models
+PATH = "C:/Users/faizz/University Work/Year 3/Individual Project TH86/Model"
+
+agent_list = [0, 0, 0, 0]
 n_actions = 52
+training = False
+playersNameList = ['Arthur', 'Boris', 'Calum', 'Diego']
+
+# DQL Agent Training
+"""
+agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, tau, training)
+agent_list[1] = GreedyAgent(playersNameList[1])
+agent_list[2] = GreedyAgent(playersNameList[2])
+agent_list[3] = GreedyAgent(playersNameList[3])
+"""
+# DQL Agent Testing v Random
+"""
+agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, tau, training)
+agent_list[1] = RandomAgent(playersNameList[1])
+agent_list[2] = RandomAgent(playersNameList[2])
+agent_list[3] = RandomAgent(playersNameList[3])
+"""
+# DQL Agent Testing v Human v Random v Greedy
+
+agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, tau, training)
+agent_list[1] = RandomAgent(playersNameList[1])
+agent_list[2] = HumanAgent()
+agent_list[3] = GreedyAgent(playersNameList[3])
+
+
+max_score = 100
 score_list = [[], [], [], []]
 average_scores_per_round = [[], [], [], []]
 
@@ -45,28 +68,6 @@ def load_model(model, load_number):
     return model
 
 
-# DQL Agent Training
-"""
-agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, training)
-agent_list[1] = GreedyAgent(playersNameList[1])
-agent_list[2] = GreedyAgent(playersNameList[2])
-agent_list[3] = RandomAgent(playersNameList[3])
-"""
-# DQL Agent Testing v Random
-
-agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, training)
-agent_list[1] = RandomAgent(playersNameList[1])
-agent_list[2] = RandomAgent(playersNameList[2])
-agent_list[3] = RandomAgent(playersNameList[3])
-
-# DQL Agent Testing v Human v Random v Greedy
-"""
-agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, training)
-agent_list[1] = RandomAgent(playersNameList[1])
-agent_list[2] = HumanAgent()
-agent_list[3] = GreedyAgent(playersNameList[3])
-"""
-
 dql_agent_index = 0
 for index in range(0, len(agent_list)):
     if isinstance(agent_list[index], DQLAgent):
@@ -81,7 +82,7 @@ if not training:
 start_time = time.time()
 
 for episode_number in range(num_episodes + 1):
-        
+
     observation = env.reset()   # return initial observation
     done = False
     scores = [0, 0, 0, 0]
@@ -92,13 +93,13 @@ for episode_number in range(num_episodes + 1):
             model = agent_list[dql_agent_index].Q_network
             save_model(model, episode_number)
     else:
-        if episode_number % 1 == 0:
+        if episode_number % 50 == 0:
             print("Testing Episode Number:", episode_number)
 
     while not done:
 
         # render environment and initialise score and action
-        env.render()        
+        env.render()
         is_broadcast = observation['broadcast']
         event = observation['event_name']
         data = observation['data']
@@ -141,8 +142,8 @@ for episode_number in range(num_episodes + 1):
                 dql_agent.store_transition(stored_current_state, stored_action, \
                                             stored_reward, stored_next_state, done)
                 
-                # agent learns every 4 steps
-                if dql_agent.learn_step % 4 == 0:
+                # agent learns every learn_step steps
+                if dql_agent.learn_step % learn_step == 0:
                     dql_agent.learn()
                 dql_agent.learn_step += 1
 
@@ -156,7 +157,6 @@ for episode_number in range(num_episodes + 1):
                 score = data['players'][pair]['score']
                 average_score = score/round_number
                 average_scores_per_round[pair].append(-average_score)
-            print("Game over")
 
         observation = new_observation
 

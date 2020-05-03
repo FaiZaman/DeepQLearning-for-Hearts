@@ -10,7 +10,7 @@ class DQLAgent(object):
     # batch size = number of experiences sampled
     # gamma = discount factor
     # epsilon for epsilon greedy
-    def __init__(self, gamma, epsilon, learning_rate, batch_size, n_actions,
+    def __init__(self, gamma, epsilon, learning_rate, batch_size, n_actions, tau,
                  training, max_mem_size=1000000, epsilon_min=0.01, epsilon_decrement = 0.996):
 
         self.name = "DQLAgent"
@@ -19,6 +19,7 @@ class DQLAgent(object):
         self.batch_size = batch_size
         self.n_actions = n_actions
         self.learning_rate = learning_rate
+        self.tau = tau    # replace every tau steps
         self.training = training
 
         # e_end is the lowest value epsilon will decrease to, e_dec is factor by which epsilon decreases
@@ -32,7 +33,6 @@ class DQLAgent(object):
         # two networks as in recent papers
         self.Q_network = DeepQNetwork(learning_rate, n_actions=52)
         self.target_network = DeepQNetwork(learning_rate, n_actions=52)
-        self.tau = 10000    # replace every tau steps
         self.tau_counter = 0
 
         self.state_memory = np.zeros((self.memory_size, *[2, 52]))
@@ -58,36 +58,6 @@ class DQLAgent(object):
         self.lr_scale = 1.0004
 
 
-    # function for storing memories
-    def store_transition(self, current_state, action, reward, next_state, terminal):
-        
-        index = self.memory_counter % self.memory_size    # find position in memory
-
-        # convert state to tensor
-        current_state_tensor = self.convert_state_to_tensor(current_state)
-        next_state_tensor = self.convert_state_to_tensor(next_state)
-
-        # convert action to int
-        action = self.convert_action_to_number(action)
-
-        # one hot encoding
-        actions = np.zeros(self.n_actions)
-        if current_state['event_name'] == 'PassCards':
-            action = rand.sample(self.action_space, 1)
-        
-        if action:
-            actions[action] = 1
-        
-        # add to memories and increment counter
-        self.state_memory[index] = current_state_tensor
-        self.action_memory[index] = actions
-        self.reward_memory[index] = -reward
-        self.new_state_memory[index] = next_state_tensor
-        self.terminal_memory[index] = 1 - terminal
-
-        self.memory_counter += 1
-
-    
     def choose_action(self, observation):
 
         # get event and hand name
@@ -132,7 +102,7 @@ class DQLAgent(object):
                     # get action list from neural Q_network
                     number_actions = self.Q_network.forward(data_tensor)
                     actions = self.filter_output_actions(playable_hand, number_actions)
-                    
+
                     # choose action with greatest value
                     action = T.argmax(actions).item()               
                     card_chosen = self.convert_number_to_action(action)
@@ -145,7 +115,34 @@ class DQLAgent(object):
                 }
             }
 
-    
+
+  # function for storing memories
+    def store_transition(self, current_state, action, reward, next_state, terminal):
+        
+        index = self.memory_counter % self.memory_size    # find position in memory
+
+        # convert state to tensor
+        current_state_tensor = self.convert_state_to_tensor(current_state)
+        next_state_tensor = self.convert_state_to_tensor(next_state)
+
+        # convert action to int
+        action = self.convert_action_to_number(action)
+
+        # one hot encoding
+        actions = np.zeros(self.n_actions)
+        if action:
+            actions[action] = 1
+        
+        # add to memories and increment counter
+        self.state_memory[index] = current_state_tensor
+        self.action_memory[index] = actions
+        self.reward_memory[index] = -reward
+        self.new_state_memory[index] = next_state_tensor
+        self.terminal_memory[index] = 1 - terminal
+
+        self.memory_counter += 1
+
+
     def learn(self):
 
         # if statement improves correlation by only learning with enough memories
@@ -189,7 +186,6 @@ class DQLAgent(object):
             self.Q_network.optimiser.step()
 
             self.tau_counter += 1
-
             if self.tau_counter % self.tau == 0:
                 self.target_network.load_state_dict(self.Q_network.state_dict())
 
