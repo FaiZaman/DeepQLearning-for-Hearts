@@ -1,3 +1,4 @@
+import sys
 import gym
 import time
 import torch as T
@@ -44,7 +45,9 @@ while selecting:
 
     while True:
         event, values = window.read()
-        if event in (None, 'Cancel'):	# if user closes window or clicks cancel
+        if event in (None, 'Cancel'):	# if user closes window
+            selecting = False
+            sys.exit()
             break
         if event == 'Train':
             training = True
@@ -52,6 +55,7 @@ while selecting:
         if event == 'Test':
             training = False
             break
+
 
     window.close()
 
@@ -71,15 +75,25 @@ while selecting:
         window = gui.Window('Deep Q-Learning for Hearts - Training', layout)
 
         while True:
+
             event, values = window.read()
-            if event in (None, 'Cancel'):	# if user closes window or clicks cancel
+
+            if event is None:	# if user closes window
+                selecting = False
+                sys.exit()
                 break
+
             if event == 'Run':
+
+                TEST_PATH, num_episodes, learning_rate, gamma, batch_size, tau, learn_step =\
+                    values[0], int(values[1]), float(values[2]), float(values[3]), int(values[4]), int(values[5]), int(values[6])
+                if TEST_PATH != 'Save Folder':
+                    PATH = TEST_PATH
                 selecting = False
                 break
+
             if event == 'Back to Main Menu':
                 break
-            print('You entered', values[0])
 
         window.close()
 
@@ -111,12 +125,13 @@ while selecting:
 
 
 # DQL Agent Training
-"""
-agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, tau, training)
-agent_list[1] = GreedyAgent(playersNameList[1])
-agent_list[2] = GreedyAgent(playersNameList[2])
-agent_list[3] = GreedyAgent(playersNameList[3])
-"""
+if training:
+
+    agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, tau, training)
+    agent_list[1] = GreedyAgent(playersNameList[1])
+    agent_list[2] = GreedyAgent(playersNameList[2])
+    agent_list[3] = GreedyAgent(playersNameList[3])
+
 # DQL Agent Testing v Random
 """
 agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, tau, training)
@@ -125,12 +140,12 @@ agent_list[2] = RandomAgent(playersNameList[2])
 agent_list[3] = RandomAgent(playersNameList[3])
 """
 # DQL Agent Testing v Human v Random v Greedy
-
+"""
 agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, tau, training)
 agent_list[1] = RandomAgent(playersNameList[1])
 agent_list[2] = HumanAgent()
 agent_list[3] = GreedyAgent(playersNameList[3])
-
+"""
 
 max_score = 100
 score_list = [[], [], [], []]
@@ -177,7 +192,7 @@ for episode_number in range(num_episodes + 1):
             model = agent_list[dql_agent_index].Q_network
             save_model(model, episode_number)
     else:
-        if episode_number % 50 == 0:
+        if episode_number % 1 == 0:
             print("Testing Episode Number:", episode_number)
 
     while not done:
@@ -208,8 +223,7 @@ for episode_number in range(num_episodes + 1):
 
         if event != 'GameOver' and training:
 
-            if event == 'PlayTrick' and \
-                data['playerName'] == "Agent":
+            if event == 'PlayTrick' and data['playerName'] == "DQLAgent":
                 
                 # store current state and action to be used in experience replay
                 dql_agent.last_current_state = observation
