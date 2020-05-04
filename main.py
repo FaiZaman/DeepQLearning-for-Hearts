@@ -1,6 +1,7 @@
 import gym
 import time
 import torch as T
+import PySimpleGUI as gui
 from matplotlib import pyplot as plt
 
 from Hearts import *
@@ -25,6 +26,40 @@ agent_list = [0, 0, 0, 0]
 n_actions = 52
 training = False
 playersNameList = ['Arthur', 'Boris', 'Calum', 'Diego']
+dql_agent_choice_list = ['DQL Agent', 'Human Player', 'Greedy Agent', 'Random Agent']
+agent_choice_list = ['Human Player', 'Greedy Agent', 'Random Agent']
+
+gui.theme('DarkAmber')
+layout = [  [gui.Text('Hyperparameters', font=('Helvetica', 16))],
+            [gui.Text('Episodes', size=(7, 1)), gui.In(default_text=num_episodes, size=(10, 1)),
+             gui.Text('   '), gui.Text('Learning Rate', size=(10, 1)), gui.In(default_text=learning_rate, size=(10, 1))],
+            [gui.Text('Gamma', size=(7, 1)), gui.In(default_text=gamma, size=(10, 1)), gui.Text('   '), gui.Text('Batch Size', size=(10, 1)),
+             gui.In(default_text=batch_size, size=(10, 1))],
+            [gui.Text('C', size=(7, 1)), gui.In(default_text=tau, size=(10, 1)), gui.Text('   '), gui.Text('Learn Step', size=(10, 1)),
+             gui.In(default_text=learn_step, size=(10, 1))],
+            [gui.Text('_'  * 100, size=(65, 1))],
+            [gui.Text('Training/Testing', font=('Helvetica', 15), justification='left')],
+            [gui.Checkbox('Testing', size=(12, 1), default=True)],
+            [gui.Text('Agent 1', size=(7,1)), gui.Combo(dql_agent_choice_list, size=(13, 1)),
+             gui.Text('   '), gui.Text('Agent 2', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1))],
+            [gui.Text('Agent 3', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1)),
+             gui.Text('   '), gui.Text('Agent 4', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1))],
+            [gui.Text('Save Model Directory for Training: ')],
+            [gui.InputText('Save Folder'), gui.FolderBrowse()],
+            [gui.Text('Load Model Directory for Testing: ')],
+            [gui.InputText('Model File'), gui.FileBrowse()],
+            [gui.Submit(), gui.Cancel()]]
+
+window = gui.Window('Deep Q-Learning for Hearts', layout)
+
+while True:
+    event, values = window.read()
+    if event in (None, 'Cancel'):	# if user closes window or clicks cancel
+        break
+    print('You entered', values[0])
+
+window.close()
+
 
 # DQL Agent Training
 """
