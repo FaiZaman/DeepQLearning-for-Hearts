@@ -21,7 +21,8 @@ tau = 10000
 learn_step = 4
 
 # change this to the directory you want to save and load your own models
-PATH = "C:/Users/faizz/University Work/Year 3/Individual Project TH86/Model"
+save_path = "C:/Users/faizz/University Work/Year 3/Individual Project TH86/Model"
+load_path = "C:/Users/faizz/University Work/Year 3/Individual Project TH86/Model/model_2400.pth"
 
 agent_list = [0, 0, 0, 0]
 n_actions = 52
@@ -31,7 +32,6 @@ agent_choice_list = ['Human Player', 'Greedy Agent', 'Random Agent']
 
 training = None
 selecting = True
-gui.theme('DarkAmber')
 
 while selecting:
 
@@ -63,7 +63,7 @@ while selecting:
 
         layout = [  [gui.Text('Training', font=('Helvetica', 16))],
                     [gui.Text('Save Model Directory for Training: ')],
-                    [gui.InputText('Save Folder'), gui.FolderBrowse()],
+                    [gui.InputText('Save Folder', disabled=True), gui.FolderBrowse()],
                     [gui.Text('Episodes', size=(7, 1)), gui.In(default_text=num_episodes, size=(10, 1)),
                     gui.Text('   '), gui.Text('Learning Rate', size=(10, 1)), gui.In(default_text=learning_rate, size=(10, 1))],
                     [gui.Text('Gamma', size=(7, 1)), gui.In(default_text=gamma, size=(10, 1)), gui.Text('   '), gui.Text('Batch Size', size=(10, 1)),
@@ -85,10 +85,10 @@ while selecting:
 
             if event == 'Run':
 
-                TEST_PATH, num_episodes, learning_rate, gamma, batch_size, tau, learn_step =\
+                test_path, num_episodes, learning_rate, gamma, batch_size, tau, learn_step =\
                     values[0], int(values[1]), float(values[2]), float(values[3]), int(values[4]), int(values[5]), int(values[6])
-                if TEST_PATH != 'Save Folder':
-                    PATH = TEST_PATH
+                if test_path != 'Save Folder':
+                    save_path = test_path
                 selecting = False
                 break
 
@@ -100,11 +100,12 @@ while selecting:
     else:
 
         layout = [  [gui.Text('Testing', font=('Helvetica', 15), justification='left')],
+                    [gui.Text('Episodes', size=(7, 1)), gui.In(default_text=num_episodes, size=(10, 1))],
                     [gui.Text('Load Model for Testing: ')],
-                    [gui.InputText('Model File'), gui.FileBrowse()],
-                    [gui.Text('Agent 1', size=(7,1)), gui.Combo(dql_agent_choice_list, size=(13, 1)),
-                    gui.Text('   '), gui.Text('Agent 2', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1))],
-                    [gui.Text('Agent 3', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1)),
+                    [gui.InputText('Model File', disabled=True), gui.FileBrowse()],
+                    [gui.Text('Agent 1', size=(7,1)), gui.Combo(["DQL Agent"], size=(13, 1)),
+                    gui.Text('   '), gui.Text('Agent 3', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1))],
+                    [gui.Text('Agent 2', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1)),
                     gui.Text('   '), gui.Text('Agent 4', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1))],
                     [gui.Button('Run'), gui.Button('Back to Main Menu')]]
 
@@ -112,14 +113,21 @@ while selecting:
 
         while True:
             event, values = window.read()
+
             if event in (None, 'Cancel'):	# if user closes window or clicks cancel
                 break
+
             if event == 'Run':
+
+                num_episodes, test_path, agent_1, agent_2, agent_3, agent_4 = int(values[0]), values[1], values[2], values[3], values[4], values[5]
+                agent_test_list = [agent_1, agent_2, agent_3, agent_4]
+                if test_path != "Model File":
+                    load_path = test_path
                 selecting = False
                 break
+
             if event == 'Back to Main Menu':
                 break
-            print('You entered', values[0])
 
         window.close()
 
@@ -132,20 +140,23 @@ if training:
     agent_list[2] = GreedyAgent(playersNameList[2])
     agent_list[3] = GreedyAgent(playersNameList[3])
 
-# DQL Agent Testing v Random
-"""
-agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, tau, training)
-agent_list[1] = RandomAgent(playersNameList[1])
-agent_list[2] = RandomAgent(playersNameList[2])
-agent_list[3] = RandomAgent(playersNameList[3])
-"""
-# DQL Agent Testing v Human v Random v Greedy
-"""
-agent_list[0] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, tau, training)
-agent_list[1] = RandomAgent(playersNameList[1])
-agent_list[2] = HumanAgent()
-agent_list[3] = GreedyAgent(playersNameList[3])
-"""
+else:
+
+    print(agent_test_list)
+    for agent_index in range(0, len(agent_list)):
+        if agent_test_list[agent_index] == "DQL Agent":
+            agent_list[agent_index] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, tau, training)
+        elif agent_test_list[agent_index] == "Human Player":
+            agent_list[agent_index] = HumanAgent()
+        elif agent_test_list[agent_index] == "Greedy Agent":
+            agent_list[agent_index] = GreedyAgent(playersNameList[agent_index])
+        elif agent_test_list[agent_index] == "Random Agent":
+            agent_list[agent_index] = RandomAgent(playersNameList[agent_index])
+
+dql_agent_index = 0
+for index in range(0, len(agent_list)):
+    if isinstance(agent_list[index], DQLAgent):
+        dql_agent_index = index
 
 max_score = 100
 score_list = [[], [], [], []]
@@ -153,30 +164,22 @@ average_scores_per_round = [[], [], [], []]
 
 
 # saving and loading the models
-def save_model(model, episode_number):
+def save_model(model, save_path, episode_number):
 
-    save_path = PATH + "/model_" + str(episode_number) + ".pth"
+    save_path = save_path + "/model_" + str(episode_number) + ".pth"
     T.save(model.state_dict(), save_path)
 
 
-def load_model(model, load_number):
+def load_model(model):
 
-    load_path = PATH + "/model_" + str(load_number) + ".pth"
     model.load_state_dict(T.load(load_path))
-
     return model
-
-
-dql_agent_index = 0
-for index in range(0, len(agent_list)):
-    if isinstance(agent_list[index], DQLAgent):
-        dql_agent_index = index
 
 env = gym.make('Hearts_Card_Game-v0')
 env.__init__([agent.name for agent in agent_list], max_score)
 
 if not training:
-    model = load_model(agent_list[dql_agent_index].Q_network, load_number=2400)
+    model = load_model(agent_list[dql_agent_index].Q_network)
 
 start_time = time.time()
 
@@ -187,12 +190,12 @@ for episode_number in range(num_episodes + 1):
     scores = [0, 0, 0, 0]
 
     if training:
-        if episode_number % 100 == 0:
+        if episode_number % 10 == 0:
             print("Training Episode Number:", episode_number)
             model = agent_list[dql_agent_index].Q_network
-            save_model(model, episode_number)
+            save_model(model, save_path, episode_number)
     else:
-        if episode_number % 1 == 0:
+        if episode_number % 10 == 0:
             print("Testing Episode Number:", episode_number)
 
     while not done:
@@ -321,7 +324,7 @@ def plot_total_scores(agent_list, training):
                 average_score_range = sum(score_list[player][i - score_plot_range:i])/score_plot_range
                 plottable_score_list[player].append(average_score_range)
 
-    plt.ylim(-100, 0)
+    plt.ylim(-126, 0)
     plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0],\
              plottable_score_list[dql_agent_index], label="DQL Agent")
     
@@ -356,7 +359,7 @@ def plot_round_scores(agent_list, training):
                     sum(average_scores_per_round[player][i - score_plot_range:i])/score_plot_range
                 plottable_score_list[player].append(average_score_range)
 
-    plt.ylim(-15, 0)
+    plt.ylim(-26, 0)
     plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0],\
              plottable_score_list[dql_agent_index], label="DQL Agent")
 
