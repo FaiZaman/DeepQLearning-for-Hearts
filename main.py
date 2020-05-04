@@ -24,41 +24,90 @@ PATH = "C:/Users/faizz/University Work/Year 3/Individual Project TH86/Model"
 
 agent_list = [0, 0, 0, 0]
 n_actions = 52
-training = False
 playersNameList = ['Arthur', 'Boris', 'Calum', 'Diego']
 dql_agent_choice_list = ['DQL Agent', 'Human Player', 'Greedy Agent', 'Random Agent']
 agent_choice_list = ['Human Player', 'Greedy Agent', 'Random Agent']
 
+training = None
+selecting = True
 gui.theme('DarkAmber')
-layout = [  [gui.Text('Hyperparameters', font=('Helvetica', 16))],
-            [gui.Text('Episodes', size=(7, 1)), gui.In(default_text=num_episodes, size=(10, 1)),
-             gui.Text('   '), gui.Text('Learning Rate', size=(10, 1)), gui.In(default_text=learning_rate, size=(10, 1))],
-            [gui.Text('Gamma', size=(7, 1)), gui.In(default_text=gamma, size=(10, 1)), gui.Text('   '), gui.Text('Batch Size', size=(10, 1)),
-             gui.In(default_text=batch_size, size=(10, 1))],
-            [gui.Text('C', size=(7, 1)), gui.In(default_text=tau, size=(10, 1)), gui.Text('   '), gui.Text('Learn Step', size=(10, 1)),
-             gui.In(default_text=learn_step, size=(10, 1))],
-            [gui.Text('_'  * 100, size=(65, 1))],
-            [gui.Text('Training/Testing', font=('Helvetica', 15), justification='left')],
-            [gui.Checkbox('Testing', size=(12, 1), default=True)],
-            [gui.Text('Agent 1', size=(7,1)), gui.Combo(dql_agent_choice_list, size=(13, 1)),
-             gui.Text('   '), gui.Text('Agent 2', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1))],
-            [gui.Text('Agent 3', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1)),
-             gui.Text('   '), gui.Text('Agent 4', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1))],
-            [gui.Text('Save Model Directory for Training: ')],
-            [gui.InputText('Save Folder'), gui.FolderBrowse()],
-            [gui.Text('Load Model Directory for Testing: ')],
-            [gui.InputText('Model File'), gui.FileBrowse()],
-            [gui.Submit(), gui.Cancel()]]
 
-window = gui.Window('Deep Q-Learning for Hearts', layout)
+while selecting:
 
-while True:
-    event, values = window.read()
-    if event in (None, 'Cancel'):	# if user closes window or clicks cancel
-        break
-    print('You entered', values[0])
+    layout = [  [gui.Text('Deep Q-Learning for Hearts', font=('Helvetica', 16), justification='center')],
+                [gui.Text('_'  * 100, size=(65, 1))],
+                [gui.Text('Please select whether you would like to train or test the model.')],
+                [gui.Button('Train'), gui.Button('Test'), gui.Cancel()]
+    ]
 
-window.close()
+    window = gui.Window('Deep Q-Learning for Hearts', layout)
+
+    while True:
+        event, values = window.read()
+        if event in (None, 'Cancel'):	# if user closes window or clicks cancel
+            break
+        if event == 'Train':
+            training = True
+            break
+        if event == 'Test':
+            training = False
+            break
+
+    window.close()
+
+    if training:
+
+        layout = [  [gui.Text('Training', font=('Helvetica', 16))],
+                    [gui.Text('Save Model Directory for Training: ')],
+                    [gui.InputText('Save Folder'), gui.FolderBrowse()],
+                    [gui.Text('Episodes', size=(7, 1)), gui.In(default_text=num_episodes, size=(10, 1)),
+                    gui.Text('   '), gui.Text('Learning Rate', size=(10, 1)), gui.In(default_text=learning_rate, size=(10, 1))],
+                    [gui.Text('Gamma', size=(7, 1)), gui.In(default_text=gamma, size=(10, 1)), gui.Text('   '), gui.Text('Batch Size', size=(10, 1)),
+                    gui.In(default_text=batch_size, size=(10, 1))],
+                    [gui.Text('C', size=(7, 1)), gui.In(default_text=tau, size=(10, 1)), gui.Text('   '), gui.Text('Learn Step', size=(10, 1)),
+                    gui.In(default_text=learn_step, size=(10, 1))],
+                    [gui.Button('Run'), gui.Button('Back to Main Menu')]]
+
+        window = gui.Window('Deep Q-Learning for Hearts - Training', layout)
+
+        while True:
+            event, values = window.read()
+            if event in (None, 'Cancel'):	# if user closes window or clicks cancel
+                break
+            if event == 'Run':
+                selecting = False
+                break
+            if event == 'Back to Main Menu':
+                break
+            print('You entered', values[0])
+
+        window.close()
+
+    else:
+
+        layout = [  [gui.Text('Testing', font=('Helvetica', 15), justification='left')],
+                    [gui.Text('Load Model for Testing: ')],
+                    [gui.InputText('Model File'), gui.FileBrowse()],
+                    [gui.Text('Agent 1', size=(7,1)), gui.Combo(dql_agent_choice_list, size=(13, 1)),
+                    gui.Text('   '), gui.Text('Agent 2', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1))],
+                    [gui.Text('Agent 3', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1)),
+                    gui.Text('   '), gui.Text('Agent 4', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1))],
+                    [gui.Button('Run'), gui.Button('Back to Main Menu')]]
+
+        window = gui.Window('Deep Q-Learning for Hearts - Testing', layout)
+
+        while True:
+            event, values = window.read()
+            if event in (None, 'Cancel'):	# if user closes window or clicks cancel
+                break
+            if event == 'Run':
+                selecting = False
+                break
+            if event == 'Back to Main Menu':
+                break
+            print('You entered', values[0])
+
+        window.close()
 
 
 # DQL Agent Training
