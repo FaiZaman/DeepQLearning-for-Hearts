@@ -427,7 +427,6 @@ class HeartsEnv(Env):
                     self._event_PlayTrick()
             
             else:
-                print("resetting1", current_player.name)
                 self.event = 'PlayTrick'
                 self._event_PlayTrick()
             

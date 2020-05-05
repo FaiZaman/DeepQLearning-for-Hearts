@@ -62,14 +62,19 @@ while selecting:
     if training:
 
         layout = [  [gui.Text('Training', font=('Helvetica', 16))],
+                    [gui.Text('_'  * 100, size=(65, 1))],
+                    [gui.Text('Saving the Model', font=('Helvetica', 12))],
                     [gui.Text('Save Model Directory for Training: ')],
                     [gui.InputText('Save Folder', disabled=True), gui.FolderBrowse()],
+                    [gui.Text('_'  * 100, size=(65, 1))],
+                    [gui.Text('Hyperparameters', font=('Helvetica', 12))],
                     [gui.Text('Episodes', size=(7, 1)), gui.In(default_text=num_episodes, size=(10, 1)),
                     gui.Text('   '), gui.Text('Learning Rate', size=(10, 1)), gui.In(default_text=learning_rate, size=(10, 1))],
                     [gui.Text('Gamma', size=(7, 1)), gui.In(default_text=gamma, size=(10, 1)), gui.Text('   '), gui.Text('Batch Size', size=(10, 1)),
                     gui.In(default_text=batch_size, size=(10, 1))],
                     [gui.Text('C', size=(7, 1)), gui.In(default_text=tau, size=(10, 1)), gui.Text('   '), gui.Text('Learn Step', size=(10, 1)),
                     gui.In(default_text=learn_step, size=(10, 1))],
+                    [gui.Text('_'  * 100, size=(65, 1))],
                     [gui.Button('Run'), gui.Button('Back to Main Menu')]]
 
         window = gui.Window('Deep Q-Learning for Hearts - Training', layout)
@@ -100,13 +105,18 @@ while selecting:
     else:
 
         layout = [  [gui.Text('Testing', font=('Helvetica', 15), justification='left')],
+                    [gui.Text('_'  * 100, size=(65, 1))],
+                    [gui.Text('Episode Number & Model Loading', font=('Helvetica', 12))],
                     [gui.Text('Episodes', size=(7, 1)), gui.In(default_text=num_episodes, size=(10, 1))],
                     [gui.Text('Load Model for Testing: ')],
                     [gui.InputText('Model File', disabled=True), gui.FileBrowse()],
+                    [gui.Text('_'  * 100, size=(65, 1))],
+                    [gui.Text('Agent Selection', font=('Helvetica', 12))],
                     [gui.Text('Agent 1', size=(7,1)), gui.Combo(["DQL Agent"], size=(13, 1)),
                     gui.Text('   '), gui.Text('Agent 3', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1))],
                     [gui.Text('Agent 2', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1)),
                     gui.Text('   '), gui.Text('Agent 4', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1))],
+                    [gui.Text('_'  * 100, size=(65, 1))],
                     [gui.Button('Run'), gui.Button('Back to Main Menu')]]
 
         window = gui.Window('Deep Q-Learning for Hearts - Testing', layout)
@@ -114,7 +124,9 @@ while selecting:
         while True:
             event, values = window.read()
 
-            if event in (None, 'Cancel'):	# if user closes window or clicks cancel
+            if event is None:	# if user closes window or clicks cancel
+                selecting = False
+                sys.exit()
                 break
 
             if event == 'Run':
@@ -142,7 +154,6 @@ if training:
 
 else:
 
-    print(agent_test_list)
     for agent_index in range(0, len(agent_list)):
         if agent_test_list[agent_index] == "DQL Agent":
             agent_list[agent_index] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, tau, training)
