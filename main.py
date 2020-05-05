@@ -33,113 +33,119 @@ agent_choice_list = ['Human Player', 'Greedy Agent', 'Random Agent']
 training = None
 selecting = True
 
+selecting_layout = [
+    [gui.Text('Deep Q-Learning for Hearts', font=('Helvetica', 16), justification='center')],
+    [gui.Text('_'  * 100, size=(65, 1))],
+    [gui.Text('Please select whether you would like to train or test the model.')],
+    [gui.Button('Train'), gui.Button('Test'), gui.Cancel()]
+]
+
+training_layout = [
+    [gui.Text('Training', font=('Helvetica', 16))],
+    [gui.Text('_'  * 100, size=(65, 1))],
+    [gui.Text('Saving the Model', font=('Helvetica', 12))],
+    [gui.Text('Save Model Directory for Training: ')],
+    [gui.InputText('Save Folder', disabled=True), gui.FolderBrowse()],
+    [gui.Text('_'  * 100, size=(65, 1))],
+    [gui.Text('Hyperparameters', font=('Helvetica', 12))],
+    [gui.Text('Episodes', size=(7, 1)), gui.In(default_text=num_episodes, size=(10, 1)),
+     gui.Text('   '), gui.Text('Learning Rate', size=(10, 1)), 
+     gui.In(default_text=learning_rate, size=(10, 1))],
+    [gui.Text('Gamma', size=(7, 1)), gui.In(default_text=gamma, size=(10, 1)), 
+     gui.Text('   '), gui.Text('Batch Size', size=(10, 1)),
+     gui.In(default_text=batch_size, size=(10, 1))],
+    [gui.Text('C', size=(7, 1)), gui.In(default_text=tau, size=(10, 1)),
+     gui.Text('   '), gui.Text('Learn Step', size=(10, 1)),
+     gui.In(default_text=learn_step, size=(10, 1))],
+    [gui.Text('_'  * 100, size=(65, 1))],
+    [gui.Button('Run'), gui.Button('Back to Main Menu')]
+]
+
+testing_layout = [  
+    [gui.Text('Testing', font=('Helvetica', 15), justification='left')],
+    [gui.Text('_'  * 100, size=(65, 1))],
+    [gui.Text('Episode Number & Model Loading', font=('Helvetica', 12))],
+    [gui.Text('Episodes', size=(7, 1)), gui.In(default_text=num_episodes, size=(10, 1))],
+    [gui.Text('Load Model for Testing: ')],
+    [gui.InputText('Model File', disabled=True), gui.FileBrowse()],
+    [gui.Text('_'  * 100, size=(65, 1))],
+    [gui.Text('Agent Selection', font=('Helvetica', 12))],
+    [gui.Text('Agent 1', size=(7,1)), gui.Combo(["DQL Agent"], size=(13, 1)),
+     gui.Text('   '), gui.Text('Agent 3', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1))],
+    [gui.Text('Agent 2', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1)),
+     gui.Text('   '), gui.Text('Agent 4', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1))],
+    [gui.Text('_'  * 100, size=(65, 1))],
+    [gui.Button('Run'), gui.Button('Back to Main Menu')]
+]
+
 while selecting:
 
-    layout = [  [gui.Text('Deep Q-Learning for Hearts', font=('Helvetica', 16), justification='center')],
-                [gui.Text('_'  * 100, size=(65, 1))],
-                [gui.Text('Please select whether you would like to train or test the model.')],
-                [gui.Button('Train'), gui.Button('Test'), gui.Cancel()]
-    ]
-
-    window = gui.Window('Deep Q-Learning for Hearts', layout)
+    window = gui.Window('Deep Q-Learning for Hearts', selecting_layout)
 
     while True:
         event, values = window.read()
         if event in (None, 'Cancel'):	# if user closes window
-            selecting = False
             sys.exit()
-            break
+            break;
         if event == 'Train':
             training = True
-            break
+            break;
         if event == 'Test':
             training = False
-            break
-
+            break;
 
     window.close()
 
     if training:
 
-        layout = [  [gui.Text('Training', font=('Helvetica', 16))],
-                    [gui.Text('_'  * 100, size=(65, 1))],
-                    [gui.Text('Saving the Model', font=('Helvetica', 12))],
-                    [gui.Text('Save Model Directory for Training: ')],
-                    [gui.InputText('Save Folder', disabled=True), gui.FolderBrowse()],
-                    [gui.Text('_'  * 100, size=(65, 1))],
-                    [gui.Text('Hyperparameters', font=('Helvetica', 12))],
-                    [gui.Text('Episodes', size=(7, 1)), gui.In(default_text=num_episodes, size=(10, 1)),
-                    gui.Text('   '), gui.Text('Learning Rate', size=(10, 1)), gui.In(default_text=learning_rate, size=(10, 1))],
-                    [gui.Text('Gamma', size=(7, 1)), gui.In(default_text=gamma, size=(10, 1)), gui.Text('   '), gui.Text('Batch Size', size=(10, 1)),
-                    gui.In(default_text=batch_size, size=(10, 1))],
-                    [gui.Text('C', size=(7, 1)), gui.In(default_text=tau, size=(10, 1)), gui.Text('   '), gui.Text('Learn Step', size=(10, 1)),
-                    gui.In(default_text=learn_step, size=(10, 1))],
-                    [gui.Text('_'  * 100, size=(65, 1))],
-                    [gui.Button('Run'), gui.Button('Back to Main Menu')]]
-
-        window = gui.Window('Deep Q-Learning for Hearts - Training', layout)
+        window = gui.Window('Deep Q-Learning for Hearts - Training', training_layout)
 
         while True:
 
             event, values = window.read()
 
             if event is None:	# if user closes window
-                selecting = False
                 sys.exit()
-                break
+                break;
 
             if event == 'Run':
 
                 test_path, num_episodes, learning_rate, gamma, batch_size, tau, learn_step =\
-                    values[0], int(values[1]), float(values[2]), float(values[3]), int(values[4]), int(values[5]), int(values[6])
+                    values[0], int(values[1]), float(values[2]), float(values[3]),\
+                        int(values[4]), int(values[5]), int(values[6])
                 if test_path != 'Save Folder':
                     save_path = test_path
                 selecting = False
-                break
+                break;
 
             if event == 'Back to Main Menu':
-                break
+                break;
 
         window.close()
 
     else:
 
-        layout = [  [gui.Text('Testing', font=('Helvetica', 15), justification='left')],
-                    [gui.Text('_'  * 100, size=(65, 1))],
-                    [gui.Text('Episode Number & Model Loading', font=('Helvetica', 12))],
-                    [gui.Text('Episodes', size=(7, 1)), gui.In(default_text=num_episodes, size=(10, 1))],
-                    [gui.Text('Load Model for Testing: ')],
-                    [gui.InputText('Model File', disabled=True), gui.FileBrowse()],
-                    [gui.Text('_'  * 100, size=(65, 1))],
-                    [gui.Text('Agent Selection', font=('Helvetica', 12))],
-                    [gui.Text('Agent 1', size=(7,1)), gui.Combo(["DQL Agent"], size=(13, 1)),
-                    gui.Text('   '), gui.Text('Agent 3', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1))],
-                    [gui.Text('Agent 2', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1)),
-                    gui.Text('   '), gui.Text('Agent 4', size=(7,1)), gui.Combo(agent_choice_list, size=(13, 1))],
-                    [gui.Text('_'  * 100, size=(65, 1))],
-                    [gui.Button('Run'), gui.Button('Back to Main Menu')]]
-
-        window = gui.Window('Deep Q-Learning for Hearts - Testing', layout)
+        window = gui.Window('Deep Q-Learning for Hearts - Testing', testing_layout)
 
         while True:
             event, values = window.read()
 
             if event is None:	# if user closes window or clicks cancel
-                selecting = False
                 sys.exit()
-                break
+                break;
 
             if event == 'Run':
 
-                num_episodes, test_path, agent_1, agent_2, agent_3, agent_4 = int(values[0]), values[1], values[2], values[3], values[4], values[5]
+                num_episodes, test_path, agent_1, agent_2, agent_3, agent_4 =\
+                    int(values[0]), values[1], values[2], values[3], values[4], values[5]
                 agent_test_list = [agent_1, agent_2, agent_3, agent_4]
                 if test_path != "Model File":
                     load_path = test_path
                 selecting = False
-                break
+                break;
 
             if event == 'Back to Main Menu':
-                break
+                break;
 
         window.close()
 
@@ -156,7 +162,8 @@ else:
 
     for agent_index in range(0, len(agent_list)):
         if agent_test_list[agent_index] == "DQL Agent":
-            agent_list[agent_index] = DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, tau, training)
+            agent_list[agent_index] =\
+                DQLAgent(gamma, epsilon, learning_rate, batch_size, n_actions, tau, training)
         elif agent_test_list[agent_index] == "Human Player":
             agent_list[agent_index] = HumanAgent()
         elif agent_test_list[agent_index] == "Greedy Agent":
@@ -323,11 +330,10 @@ def plot_loss_lr():
     plt.show()
 
 
-def plot_total_scores(agent_list, training):
+def plot_total_scores(agent_list):
 
     # plot the results
     plottable_score_list = [[], [], [], []]
-    y_label = "Reward" if training else "Score"
 
     for player in range(0, 4):
         for i in range(1, num_episodes + 1):
@@ -350,18 +356,16 @@ def plot_total_scores(agent_list, training):
 
     #plt.title('Scores over episodes')
     plt.xlabel('Episode number')
-    plt.ylabel(y_label)
+    plt.ylabel('Score')
     plt.legend(loc="upper right")
 
     plt.show()
 
 
-def plot_round_scores(agent_list, training):
+def plot_round_scores(agent_list):
 
     # plot the results
     plottable_score_list = [[], [], [], []]
-    opponent_label = "Greedy Agent " if training else "Greedy Agent "
-    y_label = "Reward" if training else "Score"
 
     for player in range(0, 4):
         for i in range(1, num_episodes + 1):
@@ -385,15 +389,15 @@ def plot_round_scores(agent_list, training):
 
     #plt.title('Average round scores over episodes')
     plt.xlabel('Episode number')
-    plt.ylabel(y_label)
+    plt.ylabel('Score')
     plt.legend(loc="upper right")
 
     plt.show()
 
 time_taken = time.time() - start_time
 
-plot_total_scores(agent_list.copy(), training)
-plot_round_scores(agent_list, training)
+plot_total_scores(agent_list.copy())
+plot_round_scores(agent_list)
 
 print("The program took %s seconds to %s %s episodes" % \
     (time_taken, "run" if training else "test", num_episodes))
