@@ -6,15 +6,19 @@ Gather results
 # This week
 
 Finalised training
-Improved random and human agent for better UI
+Improved random and human agent for better code readability
+Implemented GUI for training and testing - ease of use and robustness
+Oral Exam
 
 # Paper
 
-Network Architecture - diagram?
-Show average score per hand for testing as well as total game score
+Added deep neural network diagram
+Added short GUI discussion in solution
+Mostly finished results section
+Started evaluation section
+Started on results table - realised we have enough space
 
-# Software Demo
+# Questions
 
-Adapt and extend presentation slides
-Practice
-Email list of deliverables? (include double. q?)
+GUI in paper - keep?
+Table - good idea?

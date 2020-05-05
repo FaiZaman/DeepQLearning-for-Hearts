@@ -394,10 +394,24 @@ def plot_round_scores(agent_list):
 
     plt.show()
 
+
+def calculate_average_score(agents_score_list):
+
+    dql_agent_score_list = agents_score_list[dql_agent_index]
+    average_score = sum(dql_agent_score_list)/len(dql_agent_score_list)
+
+    return average_score
+
+
 time_taken = time.time() - start_time
 
 plot_total_scores(agent_list.copy())
 plot_round_scores(agent_list)
 
+average_episode_score = calculate_average_score(score_list)
+average_round_score = calculate_average_score(average_scores_per_round)
+
 print("The program took %s seconds to %s %s episodes" % \
     (time_taken, "run" if training else "test", num_episodes))
+print("The average episode score of the DQL agent was %f" % average_episode_score)
+print("The average round score of the DQL agent was %f" % average_round_score)
