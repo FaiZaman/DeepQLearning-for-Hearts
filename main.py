@@ -136,7 +136,7 @@ while selecting:
 
             if event == 'Run':
 
-                num_episodes, test_path, agent_1, agent_2, agent_3, agent_4 =\
+                num_episodes, test_path, agent_1, agent_3, agent_2, agent_4 =\
                     int(values[0]), values[1], values[2], values[3], values[4], values[5]
                 agent_test_list = [agent_1, agent_2, agent_3, agent_4]
                 if test_path != "Model File":
@@ -341,7 +341,7 @@ def plot_total_scores(agent_list):
                 average_score_range = sum(score_list[player][i - score_plot_range:i])/score_plot_range
                 plottable_score_list[player].append(average_score_range)
 
-    plt.ylim(-126, 0)
+    plt.ylim(-100, 0)
     plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0],\
              plottable_score_list[dql_agent_index], label="DQL Agent")
     
@@ -374,7 +374,7 @@ def plot_round_scores(agent_list):
                     sum(average_scores_per_round[player][i - score_plot_range:i])/score_plot_range
                 plottable_score_list[player].append(average_score_range)
 
-    plt.ylim(-26, 0)
+    plt.ylim(-15, 0)
     plt.plot([x for x in range(1, num_episodes + 1) if x % score_plot_range == 0],\
              plottable_score_list[dql_agent_index], label="DQL Agent")
 

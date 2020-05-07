@@ -1,3 +1,8 @@
+"""
+The Hearts environment was taken from https://github.com/zmcx16/OpenAI-Gym-Hearts 
+and adapted for this project. This file was taken directly from the environment
+"""
+
 from .Deck import Deck
 from .Card import Card, Suit, Rank
 from .Player import Player
@@ -56,6 +61,7 @@ class HeartsEnv(Env):
         self.renderInfo = {'printFlag': False, 'Msg': ""}
 
 
+    # this function was edited from the original to assign our own rewards
     def _handleScoring(self, event):
         
         rewards = [0, 0, 0, 0]
