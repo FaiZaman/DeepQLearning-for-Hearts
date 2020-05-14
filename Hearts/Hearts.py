@@ -1,3 +1,8 @@
+"""
+The Hearts environment was taken from https://github.com/zmcx16/OpenAI-Gym-Hearts 
+and adapted for this project. This file was taken directly from the environment
+"""
+
 from .Deck import Deck
 from .Card import Card, Suit, Rank
 from .Player import Player
@@ -56,6 +61,7 @@ class HeartsEnv(Env):
         self.renderInfo = {'printFlag': False, 'Msg': ""}
 
 
+    # this function was edited from the original to assign our own rewards
     def _handleScoring(self, event):
         
         rewards = [0, 0, 0, 0]
@@ -247,6 +253,7 @@ class HeartsEnv(Env):
         = {'event_name': self.event
            , 'broadcast': True
            , 'data': {
+               "roundNumber" : self.round,
                "players" : [
                    {'playerName': self.players[0].name,
                     'score': self.players[0].score},
@@ -426,7 +433,6 @@ class HeartsEnv(Env):
                     self._event_PlayTrick()
             
             else:
-                print("resetting1", current_player.name)
                 self.event = 'PlayTrick'
                 self._event_PlayTrick()
             
@@ -564,6 +570,7 @@ class HeartsEnv(Env):
         
         self.event = None
 
+
     def reset(self):
         
         # Generate a full deck of cards and shuffle it
@@ -574,14 +581,14 @@ class HeartsEnv(Env):
         self.event_data_for_server = {}
         
         return observation
-                
+
+
     def render(self):
         
         if self.renderInfo['printFlag']:
             print(self.renderInfo['Msg'])
             self.renderInfo['printFlag'] = False
             self.renderInfo['Msg'] = ""
-    
 
         
     def step(self, action_data):

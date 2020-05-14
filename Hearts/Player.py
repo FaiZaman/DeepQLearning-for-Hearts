@@ -1,3 +1,8 @@
+"""
+The Hearts environment was taken from https://github.com/zmcx16/OpenAI-Gym-Hearts 
+and adapted for this project. This file was taken directly from the environment
+"""
+
 from .Hand import Hand
 
 class Player:

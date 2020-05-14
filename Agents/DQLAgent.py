@@ -5,18 +5,22 @@ import numpy as np
 from Network import DeepQNetwork
 from Dictionaries import Dictionary
 
-class RLAgent(object):
+class DQLAgent(object):
 
     # batch size = number of experiences sampled
-    def __init__(self, name, gamma, epsilon, learning_rate, batch_size, n_actions,    # gamma = discount factor
-                 max_mem_size=1000000, epsilon_min=0.01, epsilon_decrement = 0.996):        # epsilon for epsilon greedy
+    # gamma = discount factor
+    # epsilon for epsilon greedy
+    def __init__(self, gamma, epsilon, learning_rate, batch_size, n_actions, tau,
+                 training, max_mem_size=1000000, epsilon_min=0.01, epsilon_decrement = 0.996):
 
-        self.name = name
+        self.name = "DQLAgent"
         self.gamma = gamma
         self.epsilon = epsilon
         self.batch_size = batch_size
         self.n_actions = n_actions
         self.learning_rate = learning_rate
+        self.tau = tau    # replace every tau steps
+        self.training = training
 
         # e_end is the lowest value epsilon will decrease to, e_dec is factor by which epsilon decreases
         self.epsilon_min = epsilon_min              
@@ -25,9 +29,14 @@ class RLAgent(object):
         self.memory_size = max_mem_size
         self.memory_counter = 0     # index of how many memories are stored
         self.action_space = [i for i in range(n_actions)]
-        self.Network = DeepQNetwork(learning_rate, n_actions=52)
+
+        # two networks as in recent papers
+        self.Q_network = DeepQNetwork(learning_rate, n_actions=52)
+        self.target_network = DeepQNetwork(learning_rate, n_actions=52)
+        self.tau_counter = 0
+
         self.state_memory = np.zeros((self.memory_size, *[2, 52]))
-        self.new_state_memory = np.zeros((self.memory_size, *[2, 52]))   # used to overwrite memories as agent acquires them
+        self.new_state_memory = np.zeros((self.memory_size, *[2, 52]))   # overwrite memories acquired
         self.action_memory = np.zeros((self.memory_size, self.n_actions), dtype=np.uint8)
         self.reward_memory = np.zeros(self.memory_size)
         self.terminal_memory = np.zeros(self.memory_size, dtype=np.uint8)   # sequence of done flags
@@ -46,39 +55,9 @@ class RLAgent(object):
         # for training
         self.loss_list = []
         self.lr_list = []
-        self.lr_scale = 1.0008
+        self.lr_scale = 1.0004
 
 
-    # function for storing memories
-    def store_transition(self, current_state, action, reward, next_state, terminal):
-        
-        index = self.memory_counter % self.memory_size    # find position in memory
-
-        # convert state to tensor
-        current_state_tensor = self.convert_state_to_tensor(current_state)
-        next_state_tensor = self.convert_state_to_tensor(next_state)
-
-        # convert action to int
-        action = self.convert_action_to_number(action)
-
-        # one hot encoding
-        actions = np.zeros(self.n_actions)
-        if current_state['event_name'] == 'PassCards':
-            action = rand.sample(self.action_space, 1)
-        
-        if action:
-            actions[action] = 1
-        
-        # add to memories and increment counter
-        self.state_memory[index] = current_state_tensor
-        self.action_memory[index] = actions
-        self.reward_memory[index] = reward[0]
-        self.new_state_memory[index] = next_state_tensor
-        self.terminal_memory[index] = 1 - terminal
-
-        self.memory_counter += 1
-
-    
     def choose_action(self, observation):
 
         # get event and hand name
@@ -115,15 +94,15 @@ class RLAgent(object):
                             playable_action_space.append(hand.index(card))      
 
                 # epsilon greedy policy
-                if rand.random() < self.epsilon:
+                if rand.random() < self.epsilon and self.training:
                     card_chosen = np.random.choice(playable_hand)
                 else:
                     data_tensor = self.convert_state_to_tensor(observation)
 
-                    # get action list from neural network
-                    number_actions = self.Network.forward(data_tensor)
+                    # get action list from neural Q_network
+                    number_actions = self.Q_network.forward(data_tensor)
                     actions = self.filter_output_actions(playable_hand, number_actions)
-                    
+
                     # choose action with greatest value
                     action = T.argmax(actions).item()               
                     card_chosen = self.convert_number_to_action(action)
@@ -136,13 +115,41 @@ class RLAgent(object):
                 }
             }
 
-    
+
+  # function for storing memories
+    def store_transition(self, current_state, action, reward, next_state, terminal):
+        
+        index = self.memory_counter % self.memory_size    # find position in memory
+
+        # convert state to tensor
+        current_state_tensor = self.convert_state_to_tensor(current_state)
+        next_state_tensor = self.convert_state_to_tensor(next_state)
+
+        # convert action to int
+        action = self.convert_action_to_number(action)
+
+        # one hot encoding
+        actions = np.zeros(self.n_actions)
+        if action:
+            actions[action] = 1
+        
+        # add to memories and increment counter
+        self.state_memory[index] = current_state_tensor
+        self.action_memory[index] = actions
+        self.reward_memory[index] = -reward
+        self.new_state_memory[index] = next_state_tensor
+        self.terminal_memory[index] = 1 - terminal
+
+        self.memory_counter += 1
+
+
     def learn(self):
 
-        if self.memory_counter > self.batch_size:  # improves correlation by only learning with enough memories
+        # if statement improves correlation by only learning with enough memories
+        if self.memory_counter > self.batch_size:  
             
             # reset grad and set maximum memory
-            self.Network.optimiser.zero_grad()
+            self.Q_network.optimiser.zero_grad()
             if self.memory_counter < self.memory_size:
                 max_memory = self.memory_counter
             else:
@@ -150,17 +157,20 @@ class RLAgent(object):
 
             # get a batch of experiences from replay memory
             batch = np.random.choice(max_memory, self.batch_size)
-            state_batch, action_indices, reward_batch, new_state_batch, terminal_batch = self.get_batch(batch)
+            state_batch, action_indices, reward_batch, new_state_batch, terminal_batch =\
+                self.get_batch(batch)
 
-            # input: (64, 2, 52)
-            q_predicted = self.Network.forward(state_batch).to(self.Network.device)     # (64, 2, 52) outputs
-            q_target = self.Network.forward(state_batch).to(self.Network.device)
-            q_next = self.Network.forward(new_state_batch).to(self.Network.device)
+            # input and outputs: (64, 2, 52)
+            q_predicted = self.Q_network.forward(state_batch).to(self.Q_network.device)
+            q_target = self.target_network.forward(state_batch).to(self.target_network.device)
+            q_next = self.Q_network.forward(new_state_batch).to(self.Q_network.device)
 
             # update the Q-values using the equation Q(s, a) = r(s, a) + gamma*max(Q(s', a))
             batch_index = np.arange(self.batch_size, dtype=np.int32)
-            action_indices = T.Tensor(action_indices).long().to(self.Network.device)
-            q_target[batch_index, action_indices] = reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
+            action_indices = T.Tensor(action_indices).long().to(self.Q_network.device)
+            
+            q_target[batch_index, action_indices] =\
+                reward_batch + self.gamma * T.max(q_next, dim=1)[0] * terminal_batch
 
             # update epsilon for epsilon greedy
             if self.epsilon > self.epsilon_min:
@@ -168,21 +178,27 @@ class RLAgent(object):
             else:
                 self.epsilon = self.epsilon_min
             
-            # set loss function (mean squared error), backwards propagation, and optimiser step
-            loss = self.Network.loss(q_target, q_predicted).to(self.Network.device)
+            # set loss function (huber), backwards propagation, and optimiser step
+            loss = self.Q_network.loss(q_target, q_predicted).to(self.Q_network.device)
+
+            loss = loss.clamp(-1, 1)
             loss.backward()
-            self.Network.optimiser.step()
+            self.Q_network.optimiser.step()
+
+            self.tau_counter += 1
+            if self.tau_counter % self.tau == 0:
+                self.target_network.load_state_dict(self.Q_network.state_dict())
 
             # for plotting to determine optimum learning rate
             self.loss_list.append(loss.item())
             self.lr_list.append(self.learning_rate)
-             
-            if self.learning_rate > 1:
-                pass
-            else:
+            
+            '''
+            if self.learning_rate < 1:
                 self.learning_rate *= self.lr_scale
-                self.Network.optimiser = optim.Adam(self.Network.parameters(), lr=self.learning_rate)
-
+                self.Q_network.optimiser = optim.Adam(self.Q_network.parameters(), lr=self.learning_rate)
+            '''
+            
 
     def get_batch(self, batch_number):
 
@@ -196,8 +212,8 @@ class RLAgent(object):
         new_state_batch = self.new_state_memory[batch_number]
         terminal_batch = self.terminal_memory[batch_number]
 
-        reward_batch = T.Tensor(reward_batch).to(self.Network.device)
-        terminal_batch = T.Tensor(terminal_batch).to(self.Network.device)
+        reward_batch = T.Tensor(reward_batch).to(self.Q_network.device)
+        terminal_batch = T.Tensor(terminal_batch).to(self.Q_network.device)
 
         return state_batch, action_indices, reward_batch, new_state_batch, terminal_batch
 
@@ -222,6 +238,7 @@ class RLAgent(object):
         return legal_hand
             
 
+    # removes and returns the hand with no hearts
     def remove_hearts(self, hand):
 
         no_hearts_hand = hand.copy()
@@ -234,6 +251,7 @@ class RLAgent(object):
         return no_hearts_hand
 
 
+    # removes and returns a hand containing only legal cards
     def remove_illegal_cards(self, hand, trick_suit, trick_number, hearts_broken):
 
         legal_present = self.is_legal_present(hand, trick_suit)
@@ -251,6 +269,7 @@ class RLAgent(object):
                 return hand
 
 
+    # returns a boolean verifying whether the hand contains any legal cards
     def is_legal_present(self, hand, trick_suit):
 
         for card in hand:

@@ -2,13 +2,13 @@ import numpy
 
 class GreedyAgent():
 
-
-    def __init__(self, name, params = None):
+    def __init__(self, name):
 
         self.name = name
-    
+        self.agent_type = "Greedy Agent "
 
-    def perform_action(self, observation):
+
+    def choose_action(self, observation):
 
         event = observation['event_name']
 
@@ -54,17 +54,22 @@ class GreedyAgent():
             if '2c' in hand:
                 smallest_card = '2c'
             else:
+
                 hearts_broken = observation['data']['IsHeartsBroken']
                 trick_suit = observation['data']['trickSuit']
                 trick_number = observation['data']['trickNum']
+
                 if trick_suit == "Unset":
+
                     if hearts_broken and trick_number > 1:
                         # agent plays first card of any suit since hearts is broken
                         smallest_card = self.find_smallest_card(hand)
+
                     else:
                         # agent plays first card of any suit except for hearts
                         no_hearts_hand = self.remove_hearts(hand)
                         smallest_card = self.find_smallest_card(no_hearts_hand)
+
                 else:
                     # agent plays second/third/fourth card
                     # if at least one card of tricksuit in hand, limit to cards of tricksuit
@@ -125,8 +130,9 @@ class GreedyAgent():
 
         smallest_card = str(smallest_card_value) + smallest_card_suit
         return smallest_card
-    
 
+
+    # removes and returns the hand with no hearts
     def remove_hearts(self, hand):
 
         no_hearts_hand = hand.copy()
@@ -139,6 +145,7 @@ class GreedyAgent():
         return no_hearts_hand
 
 
+    # removes and returns a hand containing only legal cards
     def remove_illegal_cards(self, hand, trick_suit, trick_number, hearts_broken):
 
         legal_present = self.is_legal_present(hand, trick_suit)
@@ -151,11 +158,14 @@ class GreedyAgent():
             return legal_hand
         else:
             if trick_number == 1:
+                if 'Qs' in hand:
+                    hand.remove('Qs')
                 return self.remove_hearts(hand.copy())
             else:
                 return hand
 
 
+    # returns a boolean verifying whether the hand contains any legal cards
     def is_legal_present(self, hand, trick_suit):
 
         for card in hand:
